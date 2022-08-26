@@ -1,6 +1,6 @@
 """
 /***************************************************************************
- Equirectangular Viewer
+ PhotoViewer360
                                  A QGIS plugin
  Show local equirectangular images.
                              -------------------
@@ -17,7 +17,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-import sys
+import sys, os
 
 try:
     sys.path.append("C:\eclipse\plugins\org.python.pydev.core_8.3.0.202104101217\pysrc")
@@ -28,6 +28,7 @@ try:
 except ImportError:
     None
 
+plugin_dir = os.path.dirname(__file__)
 
 def classFactory(iface):
     from .Geo360 import Geo360

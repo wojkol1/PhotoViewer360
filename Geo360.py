@@ -1,6 +1,6 @@
 """
 /***************************************************************************
- Equirectangular Viewer
+ PhotoViewer360
                                  A QGIS plugin
  Show local equirectangular images.
                              -------------------
@@ -23,6 +23,7 @@ from qgis.PyQt.QtCore import Qt, QSettings, QThread
 from qgis.PyQt.QtGui import QIcon, QCursor, QPixmap
 from qgis.PyQt.QtWidgets import QAction
 
+from . import plugin_dir
 from PhotoViewer360.Geo360Dialog import Geo360Dialog
 import PhotoViewer360.config as config
 from PhotoViewer360.utils.log import log
@@ -31,7 +32,7 @@ from qgis.core import QgsApplication
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from threading import Thread
-import time
+import time, os
 
 try:
     from pydevd import *
@@ -68,17 +69,17 @@ class Geo360:
         """Add Geo360 tool"""
         log.initLogging()
         self.action = QAction(
-            QIcon(":/PhotoViewer360/images/icon.png"),
-            u"Equirectangular Viewer",
+            QIcon(plugin_dir + "/images/icon.png"),
+            u"PhotoViewer360",
             self.iface.mainWindow(),
         )
         self.action.triggered.connect(self.run)
         self.iface.addToolBarIcon(self.action)
-        self.iface.addPluginToMenu(u"&Equirectangular Viewer", self.action)
+        self.iface.addPluginToMenu(u"&PhotoViewer360", self.action)
 
     def unload(self):
         """Unload Geo360 tool"""
-        self.iface.removePluginMenu(u"&Equirectangular Viewer", self.action)
+        self.iface.removePluginMenu(u"&PhotoViewer360", self.action)
         self.iface.removeToolBarIcon(self.action)
         # Close server
         self.close_server()

@@ -8,7 +8,7 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-
+from .. import plugin_dir
 
 class Ui_orbitalDialog(object):
     def setupUi(self, orbitalDialog):
@@ -23,7 +23,7 @@ class Ui_orbitalDialog(object):
         orbitalDialog.setSizePolicy(sizePolicy)
         icon = QtGui.QIcon()
         icon.addPixmap(
-            QtGui.QPixmap(":/PhotoViewer360/images/icon.png"),
+            QtGui.QPixmap(plugin_dir + "/images/icon.png"),
             QtGui.QIcon.Normal,
             QtGui.QIcon.Off,
         )
@@ -48,7 +48,7 @@ class Ui_orbitalDialog(object):
         self.btn_back.setText("")
         icon1 = QtGui.QIcon()
         icon1.addPixmap(
-            QtGui.QPixmap(":/PhotoViewer360/images/Previous_Arrow.png"),
+            QtGui.QPixmap(plugin_dir + "/images/Previous_Arrow.png"),
             QtGui.QIcon.Normal,
             QtGui.QIcon.Off,
         )
@@ -60,7 +60,7 @@ class Ui_orbitalDialog(object):
         self.btn_next.setText("")
         icon2 = QtGui.QIcon()
         icon2.addPixmap(
-            QtGui.QPixmap(":/PhotoViewer360/images/Next_Arrow.png"),
+            QtGui.QPixmap(plugin_dir + "/images/Next_Arrow.png"),
             QtGui.QIcon.Normal,
             QtGui.QIcon.Off,
         )
@@ -76,7 +76,7 @@ class Ui_orbitalDialog(object):
         self.btn_fullscreen.setText("")
         icon3 = QtGui.QIcon()
         icon3.addPixmap(
-            QtGui.QPixmap(":/PhotoViewer360/images/full_screen.png"),
+            QtGui.QPixmap(plugin_dir + "/images/full_screen.png"),
             QtGui.QIcon.Normal,
             QtGui.QIcon.Off,
         )
@@ -98,6 +98,3 @@ class Ui_orbitalDialog(object):
         orbitalDialog.setWindowTitle(
             _translate("orbitalDialog", "PhotoViewer360")
         )
-
-
-from PhotoViewer360.gui import resources_rc

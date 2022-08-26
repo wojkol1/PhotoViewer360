@@ -1,6 +1,6 @@
 """
 /***************************************************************************
- Equirectangular Viewer
+ PhotoViewer360
                                  A QGIS plugin
  Show local equirectangular images.
                              -------------------
