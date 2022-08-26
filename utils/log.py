@@ -11,13 +11,13 @@ try:
     if not os.path.exists(d):
         os.mkdir(d)
 finally:
-    logFilePath = QgsApplication.qgisSettingsDirPath() + "log/EquirectangularViewer.log"
+    logFilePath = QgsApplication.qgisSettingsDirPath() + "log/PhotoViewer360.log"
 
 
 class log(object):
 
     handler = None
-    pluginId = "EquirectangularViewer"
+    pluginId = "PhotoViewer360"
 
     @staticmethod
     def error(text):

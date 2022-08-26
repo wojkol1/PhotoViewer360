@@ -23,10 +23,10 @@ from qgis.PyQt.QtCore import Qt, QSettings, QThread
 from qgis.PyQt.QtGui import QIcon, QCursor, QPixmap
 from qgis.PyQt.QtWidgets import QAction
 
-from EquirectangularViewer.Geo360Dialog import Geo360Dialog
-import EquirectangularViewer.config as config
-from EquirectangularViewer.utils.log import log
-from EquirectangularViewer.utils.qgsutils import qgsutils
+from PhotoViewer360.Geo360Dialog import Geo360Dialog
+import PhotoViewer360.config as config
+from PhotoViewer360.utils.log import log
+from PhotoViewer360.utils.qgsutils import qgsutils
 from qgis.core import QgsApplication
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -68,7 +68,7 @@ class Geo360:
         """Add Geo360 tool"""
         log.initLogging()
         self.action = QAction(
-            QIcon(":/EquirectangularViewer/images/icon.png"),
+            QIcon(":/PhotoViewer360/images/icon.png"),
             u"Equirectangular Viewer",
             self.iface.mainWindow(),
         )
@@ -104,7 +104,7 @@ class Geo360:
         # Create Server
         directory = (
             QgsApplication.qgisSettingsDirPath().replace("\\", "/")
-            + "python/plugins/EquirectangularViewer/viewer"
+            + "python/plugins/PhotoViewer360/viewer"
         )
         try:
             self.server = ThreadingHTTPServer(

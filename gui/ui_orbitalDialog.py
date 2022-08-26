@@ -23,7 +23,7 @@ class Ui_orbitalDialog(object):
         orbitalDialog.setSizePolicy(sizePolicy)
         icon = QtGui.QIcon()
         icon.addPixmap(
-            QtGui.QPixmap(":/EquirectangularViewer/images/icon.png"),
+            QtGui.QPixmap(":/PhotoViewer360/images/icon.png"),
             QtGui.QIcon.Normal,
             QtGui.QIcon.Off,
         )
@@ -48,7 +48,7 @@ class Ui_orbitalDialog(object):
         self.btn_back.setText("")
         icon1 = QtGui.QIcon()
         icon1.addPixmap(
-            QtGui.QPixmap(":/EquirectangularViewer/images/Previous_Arrow.png"),
+            QtGui.QPixmap(":/PhotoViewer360/images/Previous_Arrow.png"),
             QtGui.QIcon.Normal,
             QtGui.QIcon.Off,
         )
@@ -60,7 +60,7 @@ class Ui_orbitalDialog(object):
         self.btn_next.setText("")
         icon2 = QtGui.QIcon()
         icon2.addPixmap(
-            QtGui.QPixmap(":/EquirectangularViewer/images/Next_Arrow.png"),
+            QtGui.QPixmap(":/PhotoViewer360/images/Next_Arrow.png"),
             QtGui.QIcon.Normal,
             QtGui.QIcon.Off,
         )
@@ -76,7 +76,7 @@ class Ui_orbitalDialog(object):
         self.btn_fullscreen.setText("")
         icon3 = QtGui.QIcon()
         icon3.addPixmap(
-            QtGui.QPixmap(":/EquirectangularViewer/images/full_screen.png"),
+            QtGui.QPixmap(":/PhotoViewer360/images/full_screen.png"),
             QtGui.QIcon.Normal,
             QtGui.QIcon.Off,
         )
@@ -100,4 +100,4 @@ class Ui_orbitalDialog(object):
         )
 
 
-from EquirectangularViewer.gui import resources_rc
+from PhotoViewer360.gui import resources_rc

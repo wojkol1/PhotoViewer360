@@ -1,6 +1,6 @@
 [general]
-name= Equirectangular Viewer
-internal_name = EquirectangularViewer
+name= PhotoViewer360
+internal_name = PhotoViewer360
 qgisMinimumVersion=3.12
 qgisMaximumVersion=3.99
 description= Plugin for viewer local equirectangular images.
@@ -10,8 +10,8 @@ author= Francisco Raga
 email= franka1986@gmail.com
 icon=images/icon.png
 tags=images,local,cefpython, marzipano,equirectangular, equirectangular, Street View, 360
-homepage=https://github.com/All4Gis/EquirectangularViewer
-tracker=https://github.com/All4Gis/EquirectangularViewer/issues
-repository=https://github.com/All4Gis/EquirectangularViewer
+homepage=https://github.com/envirosolutionspl/PhotoViewer360
+tracker=https://github.com/envirosolutionspl/PhotoViewer360/issues
+repository=https://github.com/envirosolutionspl/PhotoViewer360
 experimental=False
 deprecated=False

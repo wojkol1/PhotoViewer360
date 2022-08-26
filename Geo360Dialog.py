@@ -37,10 +37,10 @@ from qgis.PyQt.QtCore import (
 )
 from qgis.PyQt.QtWidgets import QDialog, QWidget, QDockWidget
 from qgis.PyQt.QtGui import QWindow
-import EquirectangularViewer.config as config
-from EquirectangularViewer.geom.transformgeom import transformGeometry
-from EquirectangularViewer.gui.ui_orbitalDialog import Ui_orbitalDialog
-from EquirectangularViewer.utils.qgsutils import qgsutils
+import PhotoViewer360.config as config
+from PhotoViewer360.geom.transformgeom import transformGeometry
+from PhotoViewer360.gui.ui_orbitalDialog import Ui_orbitalDialog
+from PhotoViewer360.utils.qgsutils import qgsutils
 from qgis.PyQt.QtWebKitWidgets import QWebView, QWebPage
 from qgis.PyQt.QtWebKit import QWebSettings
 
