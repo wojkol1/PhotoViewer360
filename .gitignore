@@ -1,0 +1,8 @@
+# ignore all logs
+*.log
+# ignore pyc file
+*.pyc
+#ignore folder
+__pycache__/
+
+image.jpg

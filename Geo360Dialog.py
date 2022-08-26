@@ -35,7 +35,7 @@ from qgis.PyQt.QtCore import (
     Qt,
     pyqtSignal,
 )
-from qgis.PyQt.QtWidgets import QDialog, QWidget, QDockWidget
+from qgis.PyQt.QtWidgets import QDialog, QWidget, QDockWidget, QPushButton
 from qgis.PyQt.QtGui import QWindow, QColor
 import PhotoViewer360.config as config
 from PhotoViewer360.geom.transformgeom import transformGeometry
@@ -295,13 +295,13 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         return
 
     def FullScreen(self, value):
-        """FullScreen action button"""
-        qgsutils.showUserAndLogMessage(u"Information: ", u"Fullscreen.", onlyLog=True)
-        if value:
-            self.showMaximized()
+        sender = QObject.sender(self)
+    #     """FullScreen action button"""
+    #     qgsutils.showUserAndLogMessage(u"Information: ", u"Fullscreen.", onlyLog=True)
+        if sender.objectName() == 1:
+            self.showFullScreen()
         else:
-            self.showMinimized()
-
+            self.showNormal()
 
     def UpdateOrientation(self, yaw=None):
         """Update Orientation"""
