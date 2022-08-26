@@ -36,7 +36,7 @@ from qgis.PyQt.QtCore import (
     pyqtSignal,
 )
 from qgis.PyQt.QtWidgets import QDialog, QWidget, QDockWidget
-from qgis.PyQt.QtGui import QWindow
+from qgis.PyQt.QtGui import QWindow, QColor
 import PhotoViewer360.config as config
 from PhotoViewer360.geom.transformgeom import transformGeometry
 from PhotoViewer360.gui.ui_orbitalDialog import Ui_orbitalDialog
@@ -298,9 +298,10 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         """FullScreen action button"""
         qgsutils.showUserAndLogMessage(u"Information: ", u"Fullscreen.", onlyLog=True)
         if value:
-            self.showFullScreen()
+            self.showMaximized()
         else:
-            self.showNormal()
+            self.showMinimized()
+
 
     def UpdateOrientation(self, yaw=None):
         """Update Orientation"""
@@ -315,22 +316,26 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         )
         self.actualPointOrientation.setColor(Qt.gray)
         self.actualPointOrientation.setWidth(5)
-        self.actualPointOrientation.addPoint(self.actualPointDx)
+
+        # self.actualPointOrientation.addPoint(self.actualPointDx)
+
+        #Lewy punkt
+        CS = self.canvas.mapUnitsPerPixel() *18
+        A2x = self.actualPointDx.x() - CS
+        A2y = self.actualPointDx.y()
+        self.actualPointOrientation.addPoint(QgsPointXY(float(A2x), float(A2y)))
 
         # Górny punkt strzałki
-        CS = self.canvas.mapUnitsPerPixel() * 25
-        A1x = self.actualPointDx.x() - CS * math.cos(math.pi / 2)
+        CS = self.canvas.mapUnitsPerPixel() * 22
+        A1x = self.actualPointDx.x()
         A1y = self.actualPointDx.y() + CS
-
         self.actualPointOrientation.addPoint(QgsPointXY(float(A1x), float(A1y)))
-        
+    
         #Prawy punkt
-        # DS = self.canvas.mapUnitsPerPixel() * 25
-        # ES = self.canvas.mapUnitsPerPixel() * 50
-        # A2x = A1x - ES * math.cos(math.pi / 2)
-        # A2y = A1y + DS * math.sin(math.pi / 2)
-
-        # self.actualPointOrientation.addPoint(QgsPointXY(float(A2x), float(A2y)))
+        CS = self.canvas.mapUnitsPerPixel() * 18
+        A3x = self.actualPointDx.x() + CS
+        A3y = self.actualPointDx.y()
+        self.actualPointOrientation.addPoint(QgsPointXY(float(A3x), float(A3y)))
 
         # Vision Angle
         if yaw is not None:
@@ -351,7 +356,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         originalPoint = self.selected_features.geometry().asPoint()
         self.actualPointDx = qgsutils.convertProjection(
             originalPoint.x(),
-            originalPoint.y()+25,
+            originalPoint.y(),
             self.layer.crs().authid(),
             self.canvas.mapSettings().destinationCrs().authid(),
         )
@@ -362,23 +367,25 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         self.actualPointOrientation.setColor(Qt.gray)
         self.actualPointOrientation.setWidth(5)
 
-        self.actualPointOrientation.addPoint(self.actualPointDx)
+        # self.actualPointOrientation.addPoint(self.actualPointDx)
+        
+        #Lewy punkt
+        CS = self.canvas.mapUnitsPerPixel() * 18
+        A2x = self.actualPointDx.x() - CS
+        A2y = self.actualPointDx.y()
+        self.actualPointOrientation.addPoint(QgsPointXY(float(A2x), float(A2y)))
 
         # Górny punkt strzałki
-        CS = self.canvas.mapUnitsPerPixel() * 25
-        A1x = self.actualPointDx.x() - CS * math.cos(math.pi / 2)
+        CS = self.canvas.mapUnitsPerPixel() * 22
+        A1x = self.actualPointDx.x()
         A1y = self.actualPointDx.y() + CS
-
         self.actualPointOrientation.addPoint(QgsPointXY(float(A1x), float(A1y)))
-        
+    
         #Prawy punkt
-        # DS = self.canvas.mapUnitsPerPixel() * 25
-        # ES = self.canvas.mapUnitsPerPixel() * 50
-        # A2x = A1x - ES * math.cos(math.pi / 2)
-        # A2y = A1y + DS * math.sin(math.pi / 2)
-
-        # self.actualPointOrientation.addPoint(QgsPointXY(float(A2x), float(A2y)))
-
+        CS = self.canvas.mapUnitsPerPixel() * 18
+        A3x = self.actualPointDx.x() + CS
+        A3y = self.actualPointDx.y()
+        self.actualPointOrientation.addPoint(QgsPointXY(float(A3x), float(A3y)))
 
         # Vision Angle
         if yaw is not None:
@@ -414,14 +421,14 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         self.positionDx.setWidth(6)
         self.positionDx.setIcon(QgsRubberBand.ICON_CIRCLE)
         self.positionDx.setIconSize(6)
-        self.positionDx.setColor(Qt.black)
+        self.positionDx.setColor(QColor(0, 102, 153))
         self.positionSx = QgsRubberBand(
             self.iface.mapCanvas(), QgsWkbTypes.PointGeometry
         )
         self.positionSx.setWidth(5)
         self.positionSx.setIcon(QgsRubberBand.ICON_CIRCLE)
         self.positionSx.setIconSize(4)
-        self.positionSx.setColor(Qt.blue)
+        self.positionSx.setColor(QColor(0, 102, 153))
         self.positionInt = QgsRubberBand(
             self.iface.mapCanvas(), QgsWkbTypes.PointGeometry
         )
