@@ -20,6 +20,7 @@
 
 import math
 import os
+from os.path import basename
 from qgis.core import (
     QgsPointXY,
     QgsProject,
@@ -178,7 +179,9 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         # Copy image in local folder
         img = Image.open(src_dir)
         rgb_im = img.convert("RGB")
-        dst_dir = dst_dir + "/image.jpg"
+        a = self.current_image
+        name_img = basename(a)
+        dst_dir = dst_dir + "/" + "image.jpg"
 
         try:
             os.remove(dst_dir)
@@ -186,6 +189,19 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
             pass
 
         rgb_im.save(dst_dir)
+
+        # Utworzenie pliku html z danymi pozyskanymi z nazwy zdjęcia
+        file_metadata = open (self.plugin_path +'/viewer/file_metadata.html','w')
+        if len(name_img)>10:
+            dane = name_img.split("_")
+            file_metadata.write('<!DOCTYPE html>'+'\n'+'<html lang="pl">'+'\n'+'<head>'+'\n'+'   <meta charset="UTF-8">'+'\n'+'  <title>Photos metadata</title>'+'\n'+'</head>'+'\n'+'<body>'+'\n'+' <div style="color:white; font-family: inherit; margin-left: 5px;">'+'\n')
+            file_metadata.write("<p>"+"<b>"+"Ulica: "+"</b>"+dane[1]+"</p>")
+            file_metadata.write("<p>"+"<b>"+"Numer drogi: "+"</b>"+dane[0]+"</p>")
+            file_metadata.write("<p>"+"<b>"+"Numer odcinka: "+"</b>"+dane[2]+"</p>")
+            file_metadata.write("<p>"+"<b>"+"Kilometraż: "+"</b>"+(dane[3].split("."))[0]+"</p>")
+            file_metadata.write("    </div>"+"\n"+"</body>"+"\n"+"</html>")
+            file_metadata.close()
+
 
     def GetImage(self):
         """Get Selected Image"""
@@ -196,6 +212,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
             if not os.path.isabs(path):  # Relative Path to Project
                 path_project = QgsProject.instance().readPath("./")
                 path = os.path.normpath(os.path.join(path_project, path))
+                print(path)
         except Exception:
             qgsutils.showUserAndLogMessage(u"Information: ", u"Column not found.")
             return
@@ -213,6 +230,14 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         # this will activate the window
         self.activateWindow()
         self.selected_features = qgsutils.getToFeature(self.layer, newId)
+
+        # loc = self.plugin_path + "/viewer"
+        # test = os.listdir(loc)
+        # print(test)
+
+        # for item in test:
+        #     if (item.endswith(".jpg") or item.endswith(".png")) and not item.endswith("image.jpg") and not item.endswith("noImage.jpg"):
+        #         os.remove(os.path.join(loc, item))
 
         self.current_image = self.GetImage()
 
@@ -232,6 +257,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         # Copy file to local server
         self.CopyFile(self.current_image)
+        print(self.current_image)
 
         self.ChangeUrlViewer(self.DEFAULT_URL)
 

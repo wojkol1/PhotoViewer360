@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta charset="UTF-8">
 <style>@-ms-viewport { width: device-width; }</style>
 <link rel="stylesheet" href="./css/reset.css">
 <link rel="stylesheet" href="./css/style.css">
@@ -9,6 +10,15 @@
 
 <div id="loading"></div>
 <div id="pano"></div>
+
+<div id="photo_data">
+	<embed src="file_metadata.html">
+</div>
+
+<a href="javascript:void(0)" id="file_metadata">
+	<img class="icon off" src="img/expand.png">
+	<img class="icon on" src="img/collapse.png">
+  </a>
 
 <a href="javascript:void(0)" id="viewUp" class="viewControlButton viewControlButton-1">
 	<img class="icon" src="img/up.png">

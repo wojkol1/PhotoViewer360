@@ -75,3 +75,59 @@ body.view-control-buttons .viewControlButton {
 .viewControlButton-6 {
   margin-left: 105px;
 }
+
+#fileMetadata {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40px;
+  height: 40px;
+  padding: 5px;
+  background-color: rgb(103,115,131);
+  background-color: rgba(103,115,131,0.8);
+}
+
+#fileMetadata .text {
+  position: absolute;
+  top: 5px;
+  left: 15px;
+  width: 100%;
+  line-height: 30px;
+}
+
+#fileMetadata .icon {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 30px;
+  height: 30px;
+}
+
+#fileMetadata .icon.on {
+  display: none;
+}
+
+#fileMetadata .icon.off {
+  display: block;
+}
+
+#fileMetadata.enabled .icon.on {
+  display: block;
+}
+
+#fileMetadata.enabled .icon.off {
+  display: none;
+}
+
+#photo_data {
+  position: absolute;
+  top: 0;
+  left: 0px;
+  padding-top: 0px;
+  width: 220px;
+  max-height: 100%;
+  overflow: hidden;
+  margin-left: 0;
+  transition: margin-left 0.5s ease-in-out;
+  background-color: rgba(58,68,84,0.8);
+}

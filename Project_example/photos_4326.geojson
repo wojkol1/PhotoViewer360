@@ -11,6 +11,7 @@
 { "type": "Feature", "properties": { "GID": null, "ORDER": 5.0, "PATH": "images/1.jpg", "DIRECTION": 310.0 }, "geometry": { "type": "Point", "coordinates": [ -3.68602610739201, 40.400670471573925 ] } },
 { "type": "Feature", "properties": { "GID": null, "ORDER": 6.0, "PATH": "images/0.jpg", "DIRECTION": 310.0 }, "geometry": { "type": "Point", "coordinates": [ -3.686079584449525, 40.400712605013176 ] } },
 { "type": "Feature", "properties": { "GID": null, "ORDER": 7.0, "PATH": "images/3.png", "DIRECTION": 310.0 }, "geometry": { "type": "Point", "coordinates": [ -3.686133061507039, 40.400759600003113 ] } },
-{ "type": "Feature", "properties": { "GID": null, "ORDER": 8.0, "PATH": "images/4.jpg", "DIRECTION": 310.0 }, "geometry": { "type": "Point", "coordinates": [ -3.685701428121899, 40.400360181318021 ] } }
+{ "type": "Feature", "properties": { "GID": null, "ORDER": 8.0, "PATH": "images/4.jpg", "DIRECTION": 310.0 }, "geometry": { "type": "Point", "coordinates": [ -3.685701428121899, 40.400360181318021 ] } },
+{ "type": "Feature", "properties": { "GID": null, "ORDER": 9.0, "PATH": "C:\\Users\\grucja\\AppData\\Roaming\\QGIS\\QGIS3\\profiles\\default\\python\\plugins\\PhotoViewer360\\Project_example\\images\\G123456_Mickiewicza_101_1702.jpg", "DIRECTION": 250.0 }, "geometry": { "type": "Point", "coordinates": [ -3.686168258508187, 40.400790335412566 ] } }
 ]
 }

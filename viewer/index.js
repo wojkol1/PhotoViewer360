@@ -2,6 +2,8 @@
 // Create viewer.
 var viewer = new Marzipano.Viewer(document.getElementById('pano'));
 
+// var last = source.DateLastModified
+
 // Create source.
 var source = Marzipano.ImageUrlSource.fromString(
   "image.jpg"
@@ -21,6 +23,33 @@ var scene = viewer.createScene({
   view: view,
   pinFirstLevel: true
 });
+
+//Wyświetlanie info o zdjęciu
+var fileMetadata = document.querySelector('#photo_data');
+var fileToggleMetadata = document.querySelector('#file_metadata');
+
+function toggleMetadata() {
+  fileToggleMetadata.classList.toggle('enabled');
+}
+
+// Set handler for scene list toggle.
+fileToggleMetadata.addEventListener('click', toggleMetadata);
+
+
+function showMetadata() {
+  fileMetadata.classList.add('enabled');
+  fileToggleMetadata.classList.add('enabled');
+}
+
+function hideMetadata() {
+  fileMetadata.classList.remove('enabled');
+  fileToggleMetadata.classList.remove('enabled');
+}
+
+function toggleMetadata() {
+  fileMetadata.classList.toggle('enabled');
+  fileToggleMetadata.classList.toggle('enabled');
+}
 
 // Display scene.
 scene.switchTo();
