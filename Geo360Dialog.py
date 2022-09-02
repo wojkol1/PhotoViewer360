@@ -127,6 +127,10 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         self.setOrientation()
         self.setPosition()
 
+        #FullScreen
+        self.isWindowFullScreen = False
+        self.normalWindowState = None
+
     def onNewData(self, data):
         try:
             newYaw = float(data[0])
@@ -317,17 +321,22 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
                 u"Information: ",
                 u"You need a layer with images and set the name in the config.py file.",
             )
-
         return
 
-    def FullScreen(self, value):
-        sender = QObject.sender(self)
-    #     """FullScreen action button"""
-    #     qgsutils.showUserAndLogMessage(u"Information: ", u"Fullscreen.", onlyLog=True)
-        if sender.objectName() == 1:
-            self.showFullScreen()
+    def FullScreen(self):
+        if not self.isWindowFullScreen:
+            self.setFloating(True)
+            self.normalWindowState = self.windowState()
+            self.setWindowState(Qt.WindowFullScreen)
+            self.cef_widget.showFullScreen()
+            self.isWindowFullScreen = True
+
         else:
-            self.showNormal()
+            self.cef_widget.showNormal()
+            print(self.normalWindowState)
+            self.setWindowState(self.normalWindowState)
+            self.setFloating(False)
+            self.isWindowFullScreen = False
 
     def UpdateOrientation(self, yaw=None):
         """Update Orientation"""
