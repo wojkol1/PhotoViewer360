@@ -1,17 +1,17 @@
 {
 "type": "FeatureCollection",
 "name": "photos_4326",
-"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::2180" } },
 "features": [
-{ "type": "Feature", "properties": { "GID": null, "ORDER": 0.0, "PATH": "/home/fragalop/Desktop/Git/EquirectangularViewer/Project_example/images/0.jpg", "DIRECTION": 310.0 }, "geometry": { "type": "Point", "coordinates": [ -3.685760342621331, 40.400419291455293 ] } },
-{ "type": "Feature", "properties": { "GID": null, "ORDER": 1.0, "PATH": "images/3.png", "DIRECTION": 310.0 }, "geometry": { "type": "Point", "coordinates": [ -3.685817060712635, 40.400469527479018 ] } },
-{ "type": "Feature", "properties": { "GID": null, "ORDER": 2.0, "PATH": "images/2.jpg", "DIRECTION": 310.0 }, "geometry": { "type": "Point", "coordinates": [ -3.685865676219466, 40.400516522468955 ] } },
-{ "type": "Feature", "properties": { "GID": null, "ORDER": 3.0, "PATH": "/home/fragalop/Desktop/Git/EquirectangularViewer/Project_example/images/1.jpg", "DIRECTION": 310.0 }, "geometry": { "type": "Point", "coordinates": [ -3.685917532760087, 40.400561896942001 ] } },
-{ "type": "Feature", "properties": { "GID": null, "ORDER": 4.0, "PATH": "images/2.jpg", "DIRECTION": 310.0 }, "geometry": { "type": "Point", "coordinates": [ -3.68597425085139, 40.400615373999514 ] } },
-{ "type": "Feature", "properties": { "GID": null, "ORDER": 5.0, "PATH": "images/1.jpg", "DIRECTION": 310.0 }, "geometry": { "type": "Point", "coordinates": [ -3.68602610739201, 40.400670471573925 ] } },
-{ "type": "Feature", "properties": { "GID": null, "ORDER": 6.0, "PATH": "images/0.jpg", "DIRECTION": 310.0 }, "geometry": { "type": "Point", "coordinates": [ -3.686079584449525, 40.400712605013176 ] } },
-{ "type": "Feature", "properties": { "GID": null, "ORDER": 7.0, "PATH": "images/3.png", "DIRECTION": 310.0 }, "geometry": { "type": "Point", "coordinates": [ -3.686133061507039, 40.400759600003113 ] } },
-{ "type": "Feature", "properties": { "GID": null, "ORDER": 8.0, "PATH": "images/4.jpg", "DIRECTION": 310.0 }, "geometry": { "type": "Point", "coordinates": [ -3.685701428121899, 40.400360181318021 ] } },
-{ "type": "Feature", "properties": { "GID": null, "ORDER": 9.0, "PATH": "images\\G123456_Mickiewicza_101_1702.jpg", "DIRECTION": 250.0 }, "geometry": { "type": "Point", "coordinates": [ -3.686168258508187, 40.400790335412566 ] } }
+{ "type": "Feature", "properties": { "GID": null, "ORDER": 0.0, "PATH": "images/G103409_Mickiewicza_1001_0.jpg", "DIRECTION": 310.0, "x": "21.38993861111111", "y": "50.258863833333336" }, "geometry": { "type": "Point", "coordinates": [ 670298.245888363569975, 268474.117312615737319 ] } },
+{ "type": "Feature", "properties": { "GID": null, "ORDER": 1.0, "PATH": "images/G103409_Mickiewicza_1001_10.jpg", "DIRECTION": 310.0, "x": "21.390114583333332", "y": "50.25881866666667" }, "geometry": { "type": "Point", "coordinates": [ 670310.90881723689381, 268469.240222707390785 ] } },
+{ "type": "Feature", "properties": { "GID": null, "ORDER": 2.0, "PATH": "images/G103409_Mickiewicza_1001_100.jpg", "DIRECTION": 310.0, "x": "21.39151475", "y": "50.258048277777775" }, "geometry": { "type": "Point", "coordinates": [ 670413.600549672264606, 268387.068591734394431 ] } },
+{ "type": "Feature", "properties": { "GID": null, "ORDER": 3.0, "PATH": "images/G103409_Mickiewicza_1001_105.jpg", "DIRECTION": 310.0, "x": "21.391592694444444", "y": "50.258006055555555" }, "geometry": { "type": "Point", "coordinates": [ 670419.253467772272415, 268382.39113487675786 ] } },
+{ "type": "Feature", "properties": { "GID": null, "ORDER": 4.0, "PATH": "images/G103409_Mickiewicza_1001_110.jpg", "DIRECTION": 310.0, "x": "21.391670805555556", "y": "50.25796344444444" }, "geometry": { "type": "Point", "coordinates": [ 670425.08888648787979, 268377.93421589769423 ] } },
+{ "type": "Feature", "properties": { "GID": null, "ORDER": 5.0, "PATH": "images/G103409_Mickiewicza_1001_115.jpg", "DIRECTION": 310.0, "x": "21.391749333333333", "y": "50.25792097222222" }, "geometry": { "type": "Point", "coordinates": [ 670430.722763886908069, 268373.244702807627618 ] } },
+{ "type": "Feature", "properties": { "GID": null, "ORDER": 6.0, "PATH": "images/G103409_Mickiewicza_1001_120.jpg", "DIRECTION": 310.0, "x": "21.391827666666668", "y": "50.257878472222224" }, "geometry": { "type": "Point", "coordinates": [ 670436.573451336473227, 268368.918533287011087 ] } },
+{ "type": "Feature", "properties": { "GID": null, "ORDER": 7.0, "PATH": "images/G103409_Mickiewicza_1001_125.jpg", "DIRECTION": 310.0, "x": "21.391905666666666", "y": "50.257835916666664" }, "geometry": { "type": "Point", "coordinates": [ 670442.283426564536057, 268364.231475558131933 ] } },
+{ "type": "Feature", "properties": { "GID": null, "ORDER": 8.0, "PATH": "images/G103409_Mickiewicza_1001_130.jpg", "DIRECTION": 310.0, "x": "21.39198372222222", "y": "50.257793416666665" }, "geometry": { "type": "Point", "coordinates": [ 670447.837443671305664, 268359.658205638639629 ] } },
+{ "type": "Feature", "properties": { "GID": null, "ORDER": 9.0, "PATH": "images/G103409_Mickiewicza_1001_135.jpg", "DIRECTION": 250.0, "x": "21.39206213888889", "y": "50.25775097222222" }, "geometry": { "type": "Point", "coordinates": [ 670453.543626943719573, 268355.089828764088452 ] } }
 ]
 }

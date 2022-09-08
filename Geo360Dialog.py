@@ -20,6 +20,7 @@
 
 import math
 import os
+import processing
 from os.path import basename
 from qgis.core import (
     QgsPointXY,
@@ -27,6 +28,8 @@ from qgis.core import (
     QgsFeatureRequest,
     QgsVectorLayer,
     QgsWkbTypes,
+    QgsGeometry,
+    QgsProcessingFeatureSourceDefinition
 )
 from qgis.gui import QgsRubberBand
 
@@ -35,6 +38,7 @@ from qgis.PyQt.QtCore import (
     QUrl,
     Qt,
     pyqtSignal,
+    QBuffer
 )
 from qgis.PyQt.QtWidgets import QDialog, QWidget, QDockWidget, QPushButton
 from qgis.PyQt.QtGui import QWindow, QColor
@@ -208,15 +212,34 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
 
     def GetImage(self):
+
+        """Create buffer"""
+        layer = self.layer
+        buffer_layer = self.plugin_path+'/Project_example/buffer.shp'
+        self.layer.select(self.selected_features.id())
+        processing.run("native:buffer", {'INPUT':QgsProcessingFeatureSourceDefinition(layer.name(), selectedFeaturesOnly=True, featureLimit=-1,geometryCheck=QgsFeatureRequest.GeometryAbortOnInvalid),'DISTANCE':10,'SEGMENTS':5,'END_CAP_STYLE':0,'JOIN_STYLE':0,'MITER_LIMIT':2,'DISSOLVE':False,'OUTPUT':buffer_layer})
+        processing.run("native:selectbylocation", {'INPUT':layer.name(),'PREDICATE':0,'INTERSECT':buffer_layer,'METHOD':0})
+        
+        """Get Coordinates of an Image and Hotspots"""
+        list_of_attribute_list = []
+        for feat in self.layer.selectedFeatures():
+            x = feat.attributes()[4]
+            y = feat.attributes()[5]
+            list_of_attribute_list.append(x+','+y)
+            file_coord = open (self.plugin_path +'/viewer/coordinates.txt','w')
+            file_coord.write(str(list_of_attribute_list))
+            file_coord.close()
+            self.layer.removeSelection()
+
         """Get Selected Image"""
         try:
             path = qgsutils.getAttributeFromFeature(
                 self.selected_features, config.column_name
             )
+
             if not os.path.isabs(path):  # Relative Path to Project
                 path_project = QgsProject.instance().readPath("./")
                 path = os.path.normpath(os.path.join(path_project, path))
-                print(path)
         except Exception:
             qgsutils.showUserAndLogMessage(u"Information: ", u"Column not found.")
             return
@@ -234,14 +257,6 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         # this will activate the window
         self.activateWindow()
         self.selected_features = qgsutils.getToFeature(self.layer, newId)
-
-        # loc = self.plugin_path + "/viewer"
-        # test = os.listdir(loc)
-        # print(test)
-
-        # for item in test:
-        #     if (item.endswith(".jpg") or item.endswith(".png")) and not item.endswith("image.jpg") and not item.endswith("noImage.jpg"):
-        #         os.remove(os.path.join(loc, item))
 
         self.current_image = self.GetImage()
 
@@ -261,7 +276,6 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         # Copy file to local server
         self.CopyFile(self.current_image)
-        print(self.current_image)
 
         self.ChangeUrlViewer(self.DEFAULT_URL)
 
@@ -333,7 +347,6 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         else:
             self.cef_widget.showNormal()
-            print(self.normalWindowState)
             self.setWindowState(self.normalWindowState)
             self.setFloating(False)
             self.isWindowFullScreen = False
@@ -446,7 +459,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         self.actualPointDx = qgsutils.convertProjection(
             originalPoint.x(),
             originalPoint.y(),
-            "EPSG:4326",
+            "EPSG:2180",
             self.canvas.mapSettings().destinationCrs().authid(),
         )
 

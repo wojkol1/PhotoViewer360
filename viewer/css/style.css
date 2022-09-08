@@ -131,3 +131,12 @@ body.view-control-buttons .viewControlButton {
   transition: margin-left 0.5s ease-in-out;
   background-color: rgba(58,68,84,0.8);
 }
+
+.hotspot {
+  width: 60px;
+  height: 60px;
+}
+
+#coordinates{
+  display:none;
+}

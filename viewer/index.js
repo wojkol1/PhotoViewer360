@@ -2,8 +2,6 @@
 // Create viewer.
 var viewer = new Marzipano.Viewer(document.getElementById('pano'));
 
-// var last = source.DateLastModified
-
 // Create source.
 var source = Marzipano.ImageUrlSource.fromString(
   "image.jpg"
@@ -14,64 +12,68 @@ var geometry = new Marzipano.EquirectGeometry([{ width: 8192 }]);
 
 // Create view.
 var limiter = Marzipano.RectilinearView.limit.traditional(8192, 100*Math.PI/180);
-var view = new Marzipano.RectilinearView({ yaw:Math.PI/180 },limiter);
+var view = new Marzipano.RectilinearView({ yaw:Math.PI/180},limiter);
+
+var data = window.data;
 
 // Create scene.
 var scene = viewer.createScene({
   source: source,
   geometry: geometry,
   view: view,
-  pinFirstLevel: true
+  pinFirstLevel: true,
+  data:data
 });
 
 //Wyświetlanie info o zdjęciu
 var fileMetadata = document.querySelector('#photo_data');
 var fileToggleMetadata = document.querySelector('#file_metadata');
 
-function toggleMetadata() {
-  fileToggleMetadata.classList.toggle('enabled');
-}
-
-// Set handler for scene list toggle.
-fileToggleMetadata.addEventListener('click', toggleMetadata);
-
-
-function showMetadata() {
-  fileMetadata.classList.add('enabled');
-  fileToggleMetadata.classList.add('enabled');
-}
-
-function hideMetadata() {
-  fileMetadata.classList.remove('enabled');
-  fileToggleMetadata.classList.remove('enabled');
-}
-
-function toggleMetadata() {
-  fileMetadata.classList.toggle('enabled');
-  fileToggleMetadata.classList.toggle('enabled');
-}
-
 // Display scene.
 scene.switchTo();
 
 var viewChangeHandler = function() {
-    var yaw = view.yaw();
-	var act_yaw=yaw;
-	var d_yaw=yaw/(Math.PI/180)
-	console.log(d_yaw);
+  var yaw = view.yaw();
+	var d_yaw=yaw/(Math.PI/4)
+	console.log('yaw= ' + d_yaw);
+  };
+
+var viewPitchHandler = function() {
+  var pitch = view.pitch();
+	console.log('pitch= ' + pitch);
+  };
+
+var viewFovHandler = function() {
+  var fov = view.fov();
+  var d_fov=fov/(Math.PI/8)
+  console.log('fov= ' + fov);
   };
  
 view.addEventListener('change', viewChangeHandler);
+view.addEventListener('change', viewPitchHandler);
+view.addEventListener('change', viewFovHandler);
 
- // Create link hotspots.
-//  var imgHotspot = document.createElement('img');
-//  imgHotspot.src = 'img/hotspot.png';
-//  imgHotspot.classList.add('hotspot');
-//  imgHotspot.addEventListener('change', viewChangeHandler);
- 
-//  var position = { yaw: Math.PI/4, pitch: Math.PI/8 };
- 
-//  marzipanoScene.hotspotContainer().createHotspot(imgHotspot, position);
+//////////////////////////// NOWE PODEJŚCIE///////////////////////////////////////////////
+
+var x = document.getElementById("coordinates")
+var y = 50.257793416666665
+var a = 21.39206213888889
+var b = 50.25775097222222
+var az = 295
+
+var imgHotspot = document.createElement('img');
+imgHotspot.src = 'img/hotspot.png';
+imgHotspot.classList.add('hotspot');
+imgHotspot.addEventListener('click', function() {
+  scene.switchTo();
+});
+
+var position = {yaw: ((Math.PI/180)*az)-(Math.atan2(x-a,y-b))};
+
+scene.hotspotContainer().createHotspot(imgHotspot, position);
+
+//////////////////////////// NOWE PODEJŚCIE///////////////////////////////////////////////
+
 
 // DOM elements for view controls.
 var viewUpElement = document.querySelector('#viewUp');
