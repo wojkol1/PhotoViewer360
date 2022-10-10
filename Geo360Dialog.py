@@ -58,6 +58,8 @@ from qgis.PyQt.QtWebKit import QWebSettings
 from PyQt5.QtPrintSupport import QPrinter
 from PyQt5.QtCore import QDate, QDateTime
 
+from .slots import Slots
+
 try:
     from pydevd import *
 except ImportError:
@@ -190,8 +192,14 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         self.page.newData.connect(self.onNewData)
         self.cef_widget.setPage(self.page)
 
+        """ połaczenie z javascriptem"""
+        self.slots = Slots()
+        self.cef_widget.page().mainFrame().addToJavaScriptWindowObject("pythonSlot", self.slots)
+
         self.cef_widget.load(QUrl(self.DEFAULT_URL))
         self.ViewerLayout.addWidget(self.cef_widget, 1, 0)
+
+
 
     # def SetInitialYaw(self):
     #     """Set Initial Viewer Yaw"""

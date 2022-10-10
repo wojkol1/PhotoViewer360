@@ -106,6 +106,9 @@ jQuery.get('./coordinates.txt', function(data) {
     scene.hotspotContainer().createHotspot(list[i], {yaw: positions[i]});
     list[i].addEventListener('click', function() {
       alert('x= '+coord_x[i]+', y= '+coord_y[i]);
+
+      pythonSlot.showMessage('Hello from WebKit');
+
       $('#coord').text('x= '+coord_x[i]+', y= '+coord_y[i]);
       // var data = '\r x: ' + coord_x[i] + ' \r\n ' + 'y: ' +coord_y[i];
       var coord = document.getElementById('coord');
