@@ -101,11 +101,11 @@ jQuery.get('./coordinates.txt', function(data) {
     container.innerHTML += '<div id="link-hotspot"><img class="link-hotspot-icon" src="img/hotspot.png"></div>'
   }
   var list = document.querySelectorAll("#link-hotspot");
-  $('#coord').text('positions: '+list.length)
+  // $('#coord').text('positions: '+list.length)
   for (let i=0; i<list.length; i++) {
     scene.hotspotContainer().createHotspot(list[i], {yaw: positions[i]});
     list[i].addEventListener('click', function() {
-      // alert('x= '+coord_x[i]+', y= '+coord_y[i]);
+      alert('x= '+coord_x[i]+', y= '+coord_y[i]);
       $('#coord').text('x= '+coord_x[i]+', y= '+coord_y[i]);
       // var data = '\r x: ' + coord_x[i] + ' \r\n ' + 'y: ' +coord_y[i];
       var coord = document.getElementById('coord');
@@ -113,8 +113,8 @@ jQuery.get('./coordinates.txt', function(data) {
       // data.toBlob(function(blob) {
       //   saveAs(blob, "coord_hotspot.txt");
       // });
-      var file = new Blob([data], {type: "text/plain;charset=utf-8"});
-      saveAs(file, "upload/coord_hotspot.txt");
+      // var file = new Blob([data], {type: "text/plain;charset=utf-8"});
+      // saveAs(file, "/coord_hotspot.txt");
       // alert(file)
       // jQuery.get('./coord_hotspot.txt', function(data){
       //   data.append("data","współrzędne")
