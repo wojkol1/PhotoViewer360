@@ -119,17 +119,9 @@ body.view-control-buttons .viewControlButton {
   display: none;
 }
 
-#photo_data {
+#info-photo {
   position: absolute;
-  top: 0;
-  left: 0px;
-  padding-top: 0px;
-  width: 220px;
-  max-height: 100%;
-  overflow: hidden;
-  margin-left: 0;
-  transition: margin-left 0.5s ease-in-out;
-  background-color: rgba(58,68,84,0.8);
+  display:none;
 }
 
 .hotspot {
@@ -137,6 +129,24 @@ body.view-control-buttons .viewControlButton {
   height: 60px;
 }
 
-#coordinates{
-  display:none;
+#coord{
+  position: absolute;
+}
+
+#appData{
+  font-size: 17px !important;
+  font-weight: 400;
+}
+
+#link-hotspot {
+  width: 60px;
+  height: 60px;
+  opacity: 0.9;
+  display: block;
+}
+
+.link-hotspot-icon {
+  width: 60px;
+  height: 100%;
+  cursor: pointer;
 }
