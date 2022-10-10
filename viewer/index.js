@@ -105,11 +105,18 @@ jQuery.get('./coordinates.txt', function(data) {
   for (let i=0; i<list.length; i++) {
     scene.hotspotContainer().createHotspot(list[i], {yaw: positions[i]});
     list[i].addEventListener('click', function() {
-      alert('x= '+coord_x[i]+', y= '+coord_y[i]);
+      //alert('x= '+coord_x[i]+', y= '+coord_y[i]);
 
+      /*
+      pythonSlot - obiekt js umożliwiający komunikację z pythonem
+      */
+
+
+      let a = pythonSlot.getPhotoDetails();
+      alert(a.toString());
       pythonSlot.showMessage('Hello from WebKit');
 
-      $('#coord').text('x= '+coord_x[i]+', y= '+coord_y[i]);
+      $('#coord').text('x= ' + coord_x[i]+', y= '+coord_y[i]);
       // var data = '\r x: ' + coord_x[i] + ' \r\n ' + 'y: ' +coord_y[i];
       var coord = document.getElementById('coord');
       coord.innerHTML += toString(x+","+y)
