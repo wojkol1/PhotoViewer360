@@ -9,6 +9,7 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from .. import plugin_dir
+from qgis.gui import QgsFileWidget
 
 class Ui_orbitalDialog(object):
     def setupUi(self, orbitalDialog):
@@ -39,38 +40,42 @@ class Ui_orbitalDialog(object):
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
         self.horizontalLayout.setObjectName("horizontalLayout")
+
         spacerItem = QtWidgets.QSpacerItem(
             5, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum
         )
         self.horizontalLayout.addItem(spacerItem)
-        self.btn_back = QtWidgets.QPushButton(self.dockWidgetContents)
-        self.btn_back.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.btn_back.setText("")
+
+        # self.label = QtWidgets.QLabel(self.dockWidgetContents)
+        # self.label.setAlignment(QtCore.Qt.AlignCenter)
+        # self.label.setObjectName("label")
+        # self.horizontalLayout.addWidget(self.label)
+
+        # self.QgsFileWidget_save_img = QgsFileWidget(self.dockWidgetContents)
+        # self.QgsFileWidget_save_img.setUseLink(False)
+        # self.QgsFileWidget_save_img.setFullUrl(False)
+        # self.QgsFileWidget_save_img.setStorageMode(QgsFileWidget.SaveFile)
+        # self.QgsFileWidget_save_img.setObjectName("QgsFileWidget_save_img")
+        # self.horizontalLayout.addWidget(self.QgsFileWidget_save_img)
+
+        self.btn_screenshot = QtWidgets.QPushButton(self.dockWidgetContents)
+        self.btn_screenshot.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.btn_screenshot.setText("")
         icon1 = QtGui.QIcon()
         icon1.addPixmap(
-            QtGui.QPixmap(plugin_dir + "/images/Previous_Arrow.png"),
+            QtGui.QPixmap(plugin_dir + "/images/camera.png"),
             QtGui.QIcon.Normal,
             QtGui.QIcon.Off,
         )
-        self.btn_back.setIcon(icon1)
-        self.btn_back.setObjectName("btn_back")
-        self.horizontalLayout.addWidget(self.btn_back)
-        self.btn_next = QtWidgets.QPushButton(self.dockWidgetContents)
-        self.btn_next.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.btn_next.setText("")
-        icon2 = QtGui.QIcon()
-        icon2.addPixmap(
-            QtGui.QPixmap(plugin_dir + "/images/Next_Arrow.png"),
-            QtGui.QIcon.Normal,
-            QtGui.QIcon.Off,
-        )
-        self.btn_next.setIcon(icon2)
-        self.btn_next.setObjectName("btn_next")
-        self.horizontalLayout.addWidget(self.btn_next)
-        spacerItem1 = QtWidgets.QSpacerItem(
-            5, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum
-        )
-        self.horizontalLayout.addItem(spacerItem1)
+        self.btn_screenshot.setIcon(icon1)
+        self.btn_screenshot.setObjectName("btn_screenshot")
+        self.horizontalLayout.addWidget(self.btn_screenshot)
+
+        # spacerItem1 = QtWidgets.QSpacerItem(
+        #     5, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum
+        # )
+        # self.horizontalLayout.addItem(spacerItem1)
+
         self.btn_fullscreen = QtWidgets.QPushButton(self.dockWidgetContents)
         self.btn_fullscreen.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.btn_fullscreen.setText("")
@@ -84,13 +89,18 @@ class Ui_orbitalDialog(object):
         self.btn_fullscreen.setCheckable(True)
         self.btn_fullscreen.setObjectName("btn_fullscreen")
         self.horizontalLayout.addWidget(self.btn_fullscreen)
+
+        spacerItem1 = QtWidgets.QSpacerItem(
+            5, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum
+        )
+        self.horizontalLayout.addItem(spacerItem1)
+
         self.verticalLayout_3.addLayout(self.horizontalLayout)
         orbitalDialog.setWidget(self.dockWidgetContents)
 
         self.retranslateUi(orbitalDialog)
         self.btn_fullscreen.clicked["bool"].connect(orbitalDialog.FullScreen)
-        self.btn_back.clicked.connect(orbitalDialog.GetBackNextImage)
-        self.btn_next.clicked.connect(orbitalDialog.GetBackNextImage)
+        self.btn_screenshot.clicked.connect(orbitalDialog.GetScreenShot)
         QtCore.QMetaObject.connectSlotsByName(orbitalDialog)
 
     def retranslateUi(self, orbitalDialog):
@@ -98,3 +108,4 @@ class Ui_orbitalDialog(object):
         orbitalDialog.setWindowTitle(
             _translate("orbitalDialog", "PhotoViewer360")
         )
+        # self.label.setText(_translate("main", "Wybierz ściężkę zapisu zrzutu widoku: "))

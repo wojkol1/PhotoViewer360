@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+   <meta charset="UTF-8">
+  <title>Photos metadata</title>
+</head>
+<body>
+ <div style="color:white; font-family: inherit; margin-left: 5px;">
+<p><b>Numer drogi: </b>G103409</p><p><b>Nazwa ulicy: </b>Mickiewicza</p><p><b>Numer odcinka: </b>1001</p><p><b>Kilometraż: </b>100</p><p><b>Data wykonania fotografii: </b>G103409_Mickiewicza_1001_100.jpg</p>    </div>
+</body>
+</html>

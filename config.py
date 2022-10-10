@@ -1,8 +1,7 @@
 # Properties
-layer_name = "photos_4326"  # Layer with images path, yaw etc
-column_name = "path"
-column_yaw = "direction"
-column_order = "order"
+column_name = "sciezka_zdjecie"
+column_yaw = "azymut"
+column_order = "fid"
 
 # Panorama Viewer
 IP = "127.0.0.1"

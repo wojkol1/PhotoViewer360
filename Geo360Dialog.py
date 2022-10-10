@@ -19,7 +19,10 @@
 """
 
 import math
+import sys
+import processing
 import os
+import json
 from os.path import basename
 from qgis.core import (
     QgsPointXY,
@@ -27,6 +30,9 @@ from qgis.core import (
     QgsFeatureRequest,
     QgsVectorLayer,
     QgsWkbTypes,
+    QgsGeometry,
+    QgsProcessingFeatureSourceDefinition,
+    QgsCoordinateReferenceSystem
 )
 from qgis.gui import QgsRubberBand
 
@@ -35,15 +41,22 @@ from qgis.PyQt.QtCore import (
     QUrl,
     Qt,
     pyqtSignal,
+    QSize,
+    QSettings,
+    QRect,
+    QPoint,
+    QBuffer
 )
-from qgis.PyQt.QtWidgets import QDialog, QWidget, QDockWidget, QPushButton
-from qgis.PyQt.QtGui import QWindow, QColor
+from qgis.PyQt.QtWidgets import QDialog, QWidget, QDockWidget, QPushButton, QFileDialog, QApplication
+from qgis.PyQt.QtGui import QWindow, QColor, QImage, QPainter, QScreen
 import PhotoViewer360.config as config
 from PhotoViewer360.geom.transformgeom import transformGeometry
 from PhotoViewer360.gui.ui_orbitalDialog import Ui_orbitalDialog
 from PhotoViewer360.utils.qgsutils import qgsutils
 from qgis.PyQt.QtWebKitWidgets import QWebView, QWebPage
 from qgis.PyQt.QtWebKit import QWebSettings
+from PyQt5.QtPrintSupport import QPrinter
+from PyQt5.QtCore import QDate, QDateTime
 
 try:
     from pydevd import *
@@ -67,23 +80,26 @@ class _ViewerPage(QWebPage):
 
 
 class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
-
     """Geo360 Dialog Class"""
 
-    def __init__(self, iface, parent=None, featuresId=None, layer=None):
+    def __init__(self, iface, parent=None, featuresId=None, layer=None, name_layer="", press_button=None):
 
         QDockWidget.__init__(self)
+
+        # self.press_button = press_button
+
+        self.useLayer = name_layer
 
         self.setupUi(self)
 
         self.DEFAULT_URL = (
-            "http://" + config.IP + ":" + str(config.PORT) + "/viewer.html"
+                "http://" + config.IP + ":" + str(config.PORT) + "/viewer.html"
         )
         self.DEFAULT_EMPTY = (
-            "http://" + config.IP + ":" + str(config.PORT) + "/none.html"
+                "http://" + config.IP + ":" + str(config.PORT) + "/none.html"
         )
         self.DEFAULT_BLANK = (
-            "http://" + config.IP + ":" + str(config.PORT) + "/blank.html"
+                "http://" + config.IP + ":" + str(config.PORT) + "/blank.html"
         )
 
         # Create Viewer
@@ -105,10 +121,24 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         self.actualPointSx = None
         self.actualPointOrientation = None
 
+        self.actualPointOrientation = QgsRubberBand(
+            self.iface.mapCanvas(), QgsWkbTypes.LineGeometry
+        )
+        self.positionDx = QgsRubberBand(
+            self.iface.mapCanvas(), QgsWkbTypes.PointGeometry
+        )
+        self.positionInt = QgsRubberBand(
+            self.iface.mapCanvas(), QgsWkbTypes.PointGeometry
+        )
+        self.positionSx = QgsRubberBand(
+            self.iface.mapCanvas(), QgsWkbTypes.PointGeometry
+        )
+
         self.selected_features = qgsutils.getToFeature(self.layer, self.featuresId)
 
         # Get image path
         self.current_image = self.GetImage()
+        print("type path image: ", self.current_image)
 
         # Check if image exist
         if os.path.exists(self.current_image) is False:
@@ -127,6 +157,13 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         self.setOrientation()
         self.setPosition()
 
+        # FullScreen
+        self.isWindowFullScreen = False
+        self.normalWindowState = None
+
+    def __del__(self):
+        self.resetQgsRubberBand()
+
     def onNewData(self, data):
         try:
             newYaw = float(data[0])
@@ -136,6 +173,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
     def CreateViewer(self):
         """Create Viewer"""
+
         qgsutils.showUserAndLogMessage(u"Information: ", u"Create viewer", onlyLog=True)
 
         self.cef_widget = QWebView()
@@ -191,19 +229,114 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         rgb_im.save(dst_dir)
 
         # Utworzenie pliku html z danymi pozyskanymi z nazwy zdjęcia
-        file_metadata = open (self.plugin_path +'/viewer/file_metadata.html','w')
-        if len(name_img)>10:
-            dane = name_img.split("_")
-            file_metadata.write('<!DOCTYPE html>'+'\n'+'<html lang="pl">'+'\n'+'<head>'+'\n'+'   <meta charset="UTF-8">'+'\n'+'  <title>Photos metadata</title>'+'\n'+'</head>'+'\n'+'<body>'+'\n'+' <div style="color:white; font-family: inherit; margin-left: 5px;">'+'\n')
-            file_metadata.write("<p>"+"<b>"+"Ulica: "+"</b>"+dane[1]+"</p>")
-            file_metadata.write("<p>"+"<b>"+"Numer drogi: "+"</b>"+dane[0]+"</p>")
-            file_metadata.write("<p>"+"<b>"+"Numer odcinka: "+"</b>"+dane[2]+"</p>")
-            file_metadata.write("<p>"+"<b>"+"Kilometraż: "+"</b>"+(dane[3].split("."))[0]+"</p>")
-            file_metadata.write("    </div>"+"\n"+"</body>"+"\n"+"</html>")
-            file_metadata.close()
+        file_metadata = open(self.plugin_path + '/viewer/file_metadata.html', 'w')
 
+        # get dataTime
+        dateTime = "Brak daty"
+        for feature in self.layer.getFeatures():
+            if feature.attributes()[2] == name_img.split(".")[0]:
+                dateTime = feature.attributes()[7]
+                dateTime = str(dateTime.toString(Qt.ISODate)).replace("T", " ")
+                nr_drogi = str(feature.attributes()[8])
+                nazwa_ulicy = str(feature.attributes()[9])
+                numer_odcinka = str(feature.attributes()[10])
+                kilometraz = str(feature.attributes()[11])
+        
+        fxd = open(self.plugin_path + '/viewer/testtttttt.json')
+        data = json.load(fxd)
+        print(data['test'])
+        
+        if nazwa_ulicy == "NULL":
+            print(" nazwa ulicy null")
+            file_metadata.write(
+                '<!DOCTYPE html>' + '\n' + '<html lang="pl">' + '\n' + '<head>' + '\n' + '   <meta charset="UTF-8">' + '\n' + '  <title>Photos metadata</title>' + '\n' + '</head>' + '\n' + '<body>' + '\n' + ' <div id="photo_data" style="position: absolute; top: 0; left: 0px; padding-top: 0px;width: 220px; max-height: 100%; overflow: hidden; margin-left: 0; background-color: rgba(58,68,84,0.8); color:white; font-family: inherit; line-height: 0.7;">' + '\n')
+            file_metadata.write('<p style="margin-left: 5px;">' + "<b>" + "Numer drogi: " + "</b>" + nr_drogi + "</p>")
+        else:
+            file_metadata.write(
+                '<!DOCTYPE html>' + '\n' + '<html lang="pl">' + '\n' + '<head>' + '\n' + '   <meta charset="UTF-8">' + '\n' + '  <title>Photos metadata</title>' + '\n' + '</head>' + '\n' + '<body>' + '\n' + ' <div id="photo_data" style="position: absolute; top: 0; left: 0px; padding-top: 0px;width: 220px; max-height: 100%; overflow: hidden; margin-left: 0; background-color: rgba(58,68,84,0.8); color:white; font-family: inherit; line-height: 0.7;">' + '\n')
+            file_metadata.write('<p style="margin-left: 5px;">' + "<b>" + "Numer drogi: " + "</b>" + nr_drogi + "</p>")
+            file_metadata.write('<p style="margin-left: 5px;">' + "<b>" + "Nazwa ulicy: " + "</b>" + nazwa_ulicy + "</p>")
+            file_metadata.write('<p style="margin-left: 5px;">' + "<b>" + "Numer odcinka: " + "</b>" + numer_odcinka + "</p>")
+            file_metadata.write('<p style="margin-left: 5px;">' + "<b>" + "Kilometraż: " + "</b>" + kilometraz + "</p>")
+
+        file_metadata.write('<p style="margin-left: 5px;">' + "<b>" + "Data: " + "</b>" + dateTime + "</p>")
+        file_metadata.write("</div>" + "\n" + "    </div>" + "\n" + "</body>" + "\n" + "</html>")
+        file_metadata.close()
 
     def GetImage(self):
+        
+        # Odczytanie współrzędnych klikanego hotspota z pliku JSON
+
+        
+        """Create buffer"""
+        self.layer.select(self.selected_features.id())
+
+        features = self.layer.selectedFeatures()
+        for feat in features:
+            x_punktu = feat.attributes()[5]
+            y_punktu = feat.attributes()[6]
+
+        selected_feature_2180 = processing.run("native:reprojectlayer", {
+            'INPUT': QgsProcessingFeatureSourceDefinition(self.layer.name(), selectedFeaturesOnly=True, featureLimit=-1,
+                                                          geometryCheck=QgsFeatureRequest.GeometryAbortOnInvalid),
+            'TARGET_CRS': QgsCoordinateReferenceSystem('EPSG:2180'),
+            'OPERATION': '+proj=pipeline +step +proj=unitconvert +xy_in=deg +xy_out=rad +step +proj=tmerc +lat_0=0 +lon_0=19 +k=0.9993 +x_0=500000 +y_0=-5300000 +ellps=GRS80',
+            'OUTPUT': 'TEMPORARY_OUTPUT'})
+
+        bufor_2180 = processing.run("native:buffer", {
+            'INPUT': list(selected_feature_2180.values())[0],
+            'DISTANCE': 10, 'SEGMENTS': 5, 'END_CAP_STYLE': 0, 'JOIN_STYLE': 0, 'MITER_LIMIT': 2, 'DISSOLVE': False,
+            'OUTPUT': 'TEMPORARY_OUTPUT'})
+
+        # QgsProject.instance().addMapLayer(list(bufor_2180.values())[0])
+
+        point_selected = processing.run("native:selectbylocation",
+                                        {'INPUT': self.layer.name(), 'PREDICATE': 0,
+                                         'INTERSECT': list(bufor_2180.values())[0], 'METHOD': 0})
+
+        """Get Coordinates of an Image and Hotspots"""
+        # współrzędne w układzie EPSG:4326
+        list_of_attribute_list = []
+        for feat in self.layer.selectedFeatures():
+            x = feat.attributes()[5]
+            y = feat.attributes()[6]
+
+            # azymut
+            delta_x = float(x) - float(x_punktu)
+            delta_y = float(y) - float(y_punktu)
+
+            if delta_y > 0 and delta_x > 0:  # I ćwiartka
+                fi = math.atan(delta_y / delta_x)
+                azymut = fi
+            elif delta_y > 0 and delta_x < 0:  # II ćwiartka
+                fi = math.atan(delta_y / delta_x)
+                azymut = fi + 200
+            elif delta_y < 0 and delta_x < 0:  # III ćwiartka
+                fi = math.atan(delta_y / delta_x)
+                azymut = fi + 200
+            elif delta_y < 0 and delta_x > 0:  # IV ćwiartka
+                fi = math.atan(delta_y / delta_x)
+                azymut = fi + 400
+            elif delta_y == 0 and delta_x == 0:  # gdy punkt w tym samym miejscu
+                azymut = 740 # po zamianie na stopnie 666
+            # skrajne przypadki
+            elif delta_y == 0 and delta_x > 0:
+                azymut = 0
+            elif delta_y == 0 and delta_x < 0:
+                azymut = 200
+            elif delta_x == 0 and delta_y > 0:
+                azymut = 100
+            elif delta_x == 0 and delta_y < 0:
+                azymut = 300
+            else:
+                pass
+
+            list_of_attribute_list.append(x + ' ' + y + ' ' + str((180*azymut)/200))
+            file_coord = open(self.plugin_path + '/viewer/coordinates.txt', 'w')
+            file_coord.write(str(list_of_attribute_list))
+            file_coord.close()
+            self.layer.removeSelection()
+
         """Get Selected Image"""
         try:
             path = qgsutils.getAttributeFromFeature(
@@ -230,6 +363,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         # this will activate the window
         self.activateWindow()
         self.selected_features = qgsutils.getToFeature(self.layer, newId)
+        print("ReloadView")
 
         # loc = self.plugin_path + "/viewer"
         # test = os.listdir(loc)
@@ -257,84 +391,46 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         # Copy file to local server
         self.CopyFile(self.current_image)
-        print(self.current_image)
 
         self.ChangeUrlViewer(self.DEFAULT_URL)
 
-    def GetBackNextImage(self):
-        """Get to Back Image"""
-        sender = QObject.sender(self)
+    def FullScreen(self):
+        if not self.isWindowFullScreen:
+            self.setFloating(True)
+            self.normalWindowState = self.windowState()
+            self.setWindowState(Qt.WindowFullScreen)
+            self.cef_widget.showFullScreen()
+            self.isWindowFullScreen = True
+        else:
+            self.cef_widget.showNormal()
+            self.setWindowState(self.normalWindowState)
+            self.setFloating(False)
+            self.isWindowFullScreen = False
 
-        lys = self.canvas.layers()  # Check if mapa foto is loaded
-        if len(lys) == 0:
-            qgsutils.showUserAndLogMessage(
-                u"Information: ", u"You need load the photo layer."
-            )
+    def GetScreenShot(self):
+        print("Screen Shot")
+
+        image_path, extencion = QFileDialog.getSaveFileName(self.cef_widget, "Wskaż lokalizacje zrzutu ekranu",
+                                                            "",
+                                                            "PNG(*.png);;JPEG(*.jpg)")
+
+        # gdy użytkownik nie wskaże pliku -> nic nie rób
+        if not image_path:
             return
 
-        for layer in lys:
-            if layer.name() == config.layer_name:
-                self.encontrado = True
-                self.iface.setActiveLayer(layer)
-
-                f = self.selected_features
-
-                ac_lordem = f.attribute(config.column_order)
-
-                if sender.objectName() == "btn_back":
-                    new_lordem = int(ac_lordem) - 1
-                else:
-                    new_lordem = int(ac_lordem) + 1
-
-                # Filter mapa foto layer
-                ids = [
-                    feat.id()
-                    for feat in layer.getFeatures(
-                        QgsFeatureRequest().setFilterExpression(
-                            config.column_order + " ='" + str(new_lordem) + "'"
-                        )
-                    )
-                ]
-
-                if len(ids) == 0:
-                    qgsutils.showUserAndLogMessage(
-                        u"Information: ", u"There is no superiority that follows."
-                    )
-                    # Filter mapa foto layer
-                    ids = [
-                        feat.id()
-                        for feat in layer.getFeatures(
-                            QgsFeatureRequest().setFilterExpression(
-                                config.column_order + " ='" + str(ac_lordem) + "'"
-                            )
-                        )
-                    ]
-                # Update selected feature
-                self.ReloadView(ids[0])
-
-        if self.encontrado is False:
-            qgsutils.showUserAndLogMessage(
-                u"Information: ",
-                u"You need a layer with images and set the name in the config.py file.",
-            )
-
-        return
-
-    def FullScreen(self, value):
-        sender = QObject.sender(self)
-    #     """FullScreen action button"""
-    #     qgsutils.showUserAndLogMessage(u"Information: ", u"Fullscreen.", onlyLog=True)
-        if sender.objectName() == 1:
-            self.showFullScreen()
-        else:
-            self.showNormal()
+        pixmap = self.cef_widget.grab()
+        pixmap.save(image_path)
+        print("image path after save: ", image_path)
 
     def UpdateOrientation(self, yaw=None):
         """Update Orientation"""
         self.bearing = self.selected_features.attribute(config.column_yaw)
+        # print("self.bearing: ", self.bearing)
         try:
             self.actualPointOrientation.reset()
+            # print("actualPointOrientation update orientation reset")
         except Exception:
+            # print("actualPointOrientation update orientation")
             pass
 
         self.actualPointOrientation = QgsRubberBand(
@@ -345,23 +441,67 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         # self.actualPointOrientation.addPoint(self.actualPointDx)
 
-        #Lewy punkt
-        CS = self.canvas.mapUnitsPerPixel() *18
+        # Lewy punkt
+        CS = self.canvas.mapUnitsPerPixel() * 18
         A2x = self.actualPointDx.x() - CS
-        A2y = self.actualPointDx.y()
+        A2y = self.actualPointDx.y() + CS
         self.actualPointOrientation.addPoint(QgsPointXY(float(A2x), float(A2y)))
 
         # Górny punkt strzałki
         CS = self.canvas.mapUnitsPerPixel() * 22
         A1x = self.actualPointDx.x()
-        A1y = self.actualPointDx.y() + CS
+        A1y = self.actualPointDx.y()
         self.actualPointOrientation.addPoint(QgsPointXY(float(A1x), float(A1y)))
-    
-        #Prawy punkt
+
+        # Prawy punkt
         CS = self.canvas.mapUnitsPerPixel() * 18
         A3x = self.actualPointDx.x() + CS
-        A3y = self.actualPointDx.y()
+        A3y = self.actualPointDx.y() + CS
         self.actualPointOrientation.addPoint(QgsPointXY(float(A3x), float(A3y)))
+
+        # Następne punkty łuku strzałki
+        CS = self.canvas.mapUnitsPerPixel() * 18
+        A4x = self.actualPointDx.x() + CS * 0.75
+        A4y = self.actualPointDx.y() + CS * 1.25
+        self.actualPointOrientation.addPoint(QgsPointXY(float(A4x), float(A4y)))
+
+        CS = self.canvas.mapUnitsPerPixel() * 18
+        A44x = self.actualPointDx.x() + CS * 0.50
+        A44y = self.actualPointDx.y() + CS * 1.45
+        self.actualPointOrientation.addPoint(QgsPointXY(float(A44x), float(A44y)))
+
+        CS = self.canvas.mapUnitsPerPixel() * 18
+        A444x = self.actualPointDx.x() + CS * 0.25
+        A444y = self.actualPointDx.y() + CS * 1.55
+        self.actualPointOrientation.addPoint(QgsPointXY(float(A444x), float(A444y)))
+
+        # Górny punkt łuku strzałki
+        CS = self.canvas.mapUnitsPerPixel() * 18
+        A5x = self.actualPointDx.x()
+        A5y = self.actualPointDx.y() + CS * 1.6
+        self.actualPointOrientation.addPoint(QgsPointXY(float(A5x), float(A5y)))
+
+        # Następne punkty łuku strzałki
+        CS = self.canvas.mapUnitsPerPixel() * 18
+        A6x = self.actualPointDx.x() - CS * 0.25
+        A6y = self.actualPointDx.y() + CS * 1.55
+        self.actualPointOrientation.addPoint(QgsPointXY(float(A6x), float(A6y)))
+
+        CS = self.canvas.mapUnitsPerPixel() * 18
+        A66x = self.actualPointDx.x() - CS * 0.50
+        A66y = self.actualPointDx.y() + CS * 1.45
+        self.actualPointOrientation.addPoint(QgsPointXY(float(A66x), float(A66y)))
+
+        CS = self.canvas.mapUnitsPerPixel() * 18
+        A666x = self.actualPointDx.x() - CS * 0.75
+        A666y = self.actualPointDx.y() + CS * 1.25
+        self.actualPointOrientation.addPoint(QgsPointXY(float(A666x), float(A666y)))
+
+        # # punkt kończący strzałkę
+        CS = self.canvas.mapUnitsPerPixel() * 18
+        Ax = self.actualPointDx.x() - CS
+        Ay = self.actualPointDx.y() + CS
+        self.actualPointOrientation.addPoint(QgsPointXY(float(Ax), float(Ay)))
 
         # Vision Angle
         if yaw is not None:
@@ -372,7 +512,8 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         tmpGeom = self.actualPointOrientation.asGeometry()
 
         self.actualPointOrientation.setToGeometry(
-            self.rotateTool.rotate(tmpGeom, self.actualPointDx, angle), self.dumLayer
+            self.rotateTool.rotate(tmpGeom, self.actualPointDx, angle), self.dumLayer,
+            print("obraca się")
         )
 
     def setOrientation(self, yaw=None):
@@ -387,31 +528,63 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
             self.canvas.mapSettings().destinationCrs().authid(),
         )
 
+        # try:
+        #     self.actualPointOrientation.reset()
+        #     print("actualPointOrientation set orientation reset")
+        # except Exception:
+        #     print("actualPointOrientation set orientation")
+        #     pass
+
         self.actualPointOrientation = QgsRubberBand(
             self.iface.mapCanvas(), QgsWkbTypes.LineGeometry
         )
+
         self.actualPointOrientation.setColor(Qt.gray)
         self.actualPointOrientation.setWidth(5)
 
         # self.actualPointOrientation.addPoint(self.actualPointDx)
-        
-        #Lewy punkt
+
+        # # Lewy punkt
+        # CS = self.canvas.mapUnitsPerPixel() * 18
+        # A2x = self.actualPointDx.x() - CS
+        # A2y = self.actualPointDx.y()
+        # self.actualPointOrientation.addPoint(QgsPointXY(float(A2x), float(A2y)))
+        #
+        # # Górny punkt strzałki
+        # CS = self.canvas.mapUnitsPerPixel() * 22
+        # A1x = self.actualPointDx.x()
+        # A1y = self.actualPointDx.y() + CS
+        # self.actualPointOrientation.addPoint(QgsPointXY(float(A1x), float(A1y)))
+        #
+        # # Prawy punkt
+        # CS = self.canvas.mapUnitsPerPixel() * 18
+        # A3x = self.actualPointDx.x() + CS
+        # A3y = self.actualPointDx.y()
+        # self.actualPointOrientation.addPoint(QgsPointXY(float(A3x), float(A3y)))
+
+        # Lewy punkt
         CS = self.canvas.mapUnitsPerPixel() * 18
         A2x = self.actualPointDx.x() - CS
-        A2y = self.actualPointDx.y()
+        A2y = self.actualPointDx.y() + CS
         self.actualPointOrientation.addPoint(QgsPointXY(float(A2x), float(A2y)))
 
         # Górny punkt strzałki
         CS = self.canvas.mapUnitsPerPixel() * 22
         A1x = self.actualPointDx.x()
-        A1y = self.actualPointDx.y() + CS
+        A1y = self.actualPointDx.y()
         self.actualPointOrientation.addPoint(QgsPointXY(float(A1x), float(A1y)))
-    
-        #Prawy punkt
+
+        # Prawy punkt
         CS = self.canvas.mapUnitsPerPixel() * 18
         A3x = self.actualPointDx.x() + CS
-        A3y = self.actualPointDx.y()
+        A3y = self.actualPointDx.y() + CS
         self.actualPointOrientation.addPoint(QgsPointXY(float(A3x), float(A3y)))
+
+        # # Górny punkt łuku strzałki
+        # CS = self.canvas.mapUnitsPerPixel() * 22
+        # A4x = self.actualPointDx.x() + CS
+        # A4y = self.actualPointDx.y()
+        # self.actualPointOrientation.addPoint(QgsPointXY(float(A4x), float(A4y)))
 
         # Vision Angle
         if yaw is not None:
@@ -441,23 +614,49 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
             self.canvas.mapSettings().destinationCrs().authid(),
         )
 
+        # try:
+        #     self.positionDx.reset()
+        #     print("positionDx reset")
+        # except Exception:
+        #     print("positionDx")
+        #     pass
+
         self.positionDx = QgsRubberBand(
             self.iface.mapCanvas(), QgsWkbTypes.PointGeometry
         )
+
         self.positionDx.setWidth(6)
         self.positionDx.setIcon(QgsRubberBand.ICON_CIRCLE)
         self.positionDx.setIconSize(6)
         self.positionDx.setColor(QColor(0, 102, 153))
+
+        # try:
+        #     self.positionSx.reset()
+        #     print("positionSx reset")
+        # except Exception:
+        #     print("positionSx")
+        #     pass
+
         self.positionSx = QgsRubberBand(
             self.iface.mapCanvas(), QgsWkbTypes.PointGeometry
         )
+
         self.positionSx.setWidth(5)
         self.positionSx.setIcon(QgsRubberBand.ICON_CIRCLE)
         self.positionSx.setIconSize(4)
         self.positionSx.setColor(QColor(0, 102, 153))
+
+        # try:
+        #     self.positionInt.reset()
+        #     print("positionInt reset")
+        # except Exception:
+        #     print("positionInt")
+        #     pass
+
         self.positionInt = QgsRubberBand(
             self.iface.mapCanvas(), QgsWkbTypes.PointGeometry
         )
+
         self.positionInt.setWidth(5)
         self.positionInt.setIcon(QgsRubberBand.ICON_CIRCLE)
         self.positionInt.setIconSize(3)
@@ -477,10 +676,12 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
     def resetQgsRubberBand(self):
         """Remove RubbeBand"""
+        print("reset qgis rubber band")
         try:
             self.positionSx.reset()
             self.positionInt.reset()
             self.positionDx.reset()
             self.actualPointOrientation.reset()
         except Exception:
+            print("exception remove rubbeband")
             None

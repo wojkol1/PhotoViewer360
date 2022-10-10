@@ -2,8 +2,6 @@
 // Create viewer.
 var viewer = new Marzipano.Viewer(document.getElementById('pano'));
 
-// var last = source.DateLastModified
-
 // Create source.
 var source = Marzipano.ImageUrlSource.fromString(
   "image.jpg"
@@ -14,64 +12,119 @@ var geometry = new Marzipano.EquirectGeometry([{ width: 8192 }]);
 
 // Create view.
 var limiter = Marzipano.RectilinearView.limit.traditional(8192, 100*Math.PI/180);
-var view = new Marzipano.RectilinearView({ yaw:Math.PI/180 },limiter);
+var view = new Marzipano.RectilinearView({ yaw:Math.PI/180},limiter);
+
+var data = window.data;
 
 // Create scene.
 var scene = viewer.createScene({
   source: source,
   geometry: geometry,
   view: view,
-  pinFirstLevel: true
+  pinFirstLevel: true,
+  data:data
 });
 
 //Wyświetlanie info o zdjęciu
 var fileMetadata = document.querySelector('#photo_data');
 var fileToggleMetadata = document.querySelector('#file_metadata');
 
-function toggleMetadata() {
-  fileToggleMetadata.classList.toggle('enabled');
-}
-
-// Set handler for scene list toggle.
-fileToggleMetadata.addEventListener('click', toggleMetadata);
-
-
-function showMetadata() {
-  fileMetadata.classList.add('enabled');
-  fileToggleMetadata.classList.add('enabled');
-}
-
-function hideMetadata() {
-  fileMetadata.classList.remove('enabled');
-  fileToggleMetadata.classList.remove('enabled');
-}
-
-function toggleMetadata() {
-  fileMetadata.classList.toggle('enabled');
-  fileToggleMetadata.classList.toggle('enabled');
-}
-
 // Display scene.
 scene.switchTo();
 
 var viewChangeHandler = function() {
-    var yaw = view.yaw();
-	var act_yaw=yaw;
-	var d_yaw=yaw/(Math.PI/180)
-	console.log(d_yaw);
+  var yaw = view.yaw();
+	var d_yaw=yaw/(Math.PI/4)
+	console.log('yaw= ' + d_yaw);
+  };
+
+var viewPitchHandler = function() {
+  var pitch = view.pitch();
+	console.log('pitch= ' + pitch);
+  };
+
+var viewFovHandler = function() {
+  var fov = view.fov();
+  var d_fov=fov/(Math.PI/8)
+  console.log('fov= ' + fov);
   };
  
 view.addEventListener('change', viewChangeHandler);
+view.addEventListener('change', viewPitchHandler);
+view.addEventListener('change', viewFovHandler);
 
- // Create link hotspots.
-//  var imgHotspot = document.createElement('img');
-//  imgHotspot.src = 'img/hotspot.png';
-//  imgHotspot.classList.add('hotspot');
-//  imgHotspot.addEventListener('change', viewChangeHandler);
- 
-//  var position = { yaw: Math.PI/4, pitch: Math.PI/8 };
- 
-//  marzipanoScene.hotspotContainer().createHotspot(imgHotspot, position);
+//////////////////////////// NOWE PODEJŚCIE///////////////////////////////////////////////
+
+const positions =[]
+const coord_x =[]
+const coord_y =[]
+
+jQuery.get('./coordinates.txt', function(data) {
+  var aLines = data.split(",")
+  aLines.forEach(function(element){
+    var coord_substr = element.substr(2)
+    // $('#coord').text(coord_substr);
+    var coord_end = coord_substr.replace("'","").replace("]","")
+    // $('#coord').text(coord_end);
+    var coord = coord_end.split(" ")
+    // $('#coord').text(coord[0]);
+    if (coord[2] === '666.0'){
+      var x = parseFloat(coord[0])
+      var y = parseFloat(coord[1])
+      // $('#coord').text(aLines);
+      for (let i=0; i<(aLines.length); i++){
+        // $('#coord').text(aLines[i]);
+        var coord_substr = aLines[i].substr(2)
+        // $('#coord').text(aLines);
+        var coord_end = coord_substr.replace("'","").replace("]","")
+        var coord = coord_end.split(" ")
+        // $('#coord').text('coord: '+coord);
+          if (coord[2]!='666.0'){
+            // $('#coord').text('coord: '+coord);
+            var x1 = parseFloat(coord[0])
+            coord_x.push(x1)
+            var y1 = parseFloat(coord[1])
+            coord_y.push(y1)
+            var az = 295
+            // var tan = (Math.PI/180)*az
+            // var yaw = ((Math.PI/180)*az)-(Math.atan2(x-x1,y-y1))
+            var position = (Math.PI/180)*az-(Math.atan2(x-x1,y-y1))
+            // $('#coord').text('x1= '+x1+'x= '+x+'position: '+position);
+            positions.push(position)
+          }
+      }
+    }
+  })
+  // $('#coord').text('positions: '+positions)
+  for (let i=0; i<positions.length; i++) {
+    var container = document.getElementById('container');
+    container.innerHTML += '<div id="link-hotspot"><img class="link-hotspot-icon" src="img/hotspot.png"></div>'
+  }
+  var list = document.querySelectorAll("#link-hotspot");
+  $('#coord').text('positions: '+list.length)
+  for (let i=0; i<list.length; i++) {
+    scene.hotspotContainer().createHotspot(list[i], {yaw: positions[i]});
+    list[i].addEventListener('click', function() {
+      // alert('x= '+coord_x[i]+', y= '+coord_y[i]);
+      $('#coord').text('x= '+coord_x[i]+', y= '+coord_y[i]);
+      // var data = '\r x: ' + coord_x[i] + ' \r\n ' + 'y: ' +coord_y[i];
+      var coord = document.getElementById('coord');
+      coord.innerHTML += toString(x+","+y)
+      // data.toBlob(function(blob) {
+      //   saveAs(blob, "coord_hotspot.txt");
+      // });
+      var file = new Blob([data], {type: "text/plain;charset=utf-8"});
+      saveAs(file, "upload/coord_hotspot.txt");
+      // alert(file)
+      // jQuery.get('./coord_hotspot.txt', function(data){
+      //   data.append("data","współrzędne")
+      // })
+    });
+    }
+});
+
+//////////////////////////// NOWE PODEJŚCIE///////////////////////////////////////////////
+
 
 // DOM elements for view controls.
 var viewUpElement = document.querySelector('#viewUp');
