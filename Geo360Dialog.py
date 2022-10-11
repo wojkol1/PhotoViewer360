@@ -553,24 +553,6 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         # self.actualPointOrientation.addPoint(self.actualPointDx)
 
-        # # Lewy punkt
-        # CS = self.canvas.mapUnitsPerPixel() * 18
-        # A2x = self.actualPointDx.x() - CS
-        # A2y = self.actualPointDx.y()
-        # self.actualPointOrientation.addPoint(QgsPointXY(float(A2x), float(A2y)))
-        #
-        # # Górny punkt strzałki
-        # CS = self.canvas.mapUnitsPerPixel() * 22
-        # A1x = self.actualPointDx.x()
-        # A1y = self.actualPointDx.y() + CS
-        # self.actualPointOrientation.addPoint(QgsPointXY(float(A1x), float(A1y)))
-        #
-        # # Prawy punkt
-        # CS = self.canvas.mapUnitsPerPixel() * 18
-        # A3x = self.actualPointDx.x() + CS
-        # A3y = self.actualPointDx.y()
-        # self.actualPointOrientation.addPoint(QgsPointXY(float(A3x), float(A3y)))
-
         # Lewy punkt
         CS = self.canvas.mapUnitsPerPixel() * 18
         A2x = self.actualPointDx.x() - CS
@@ -578,7 +560,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         self.actualPointOrientation.addPoint(QgsPointXY(float(A2x), float(A2y)))
 
         # Górny punkt strzałki
-        CS = self.canvas.mapUnitsPerPixel() * 22
+        CS = self.canvas.mapUnitsPerPixel() * 18
         A1x = self.actualPointDx.x()
         A1y = self.actualPointDx.y()
         self.actualPointOrientation.addPoint(QgsPointXY(float(A1x), float(A1y)))
@@ -589,11 +571,49 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         A3y = self.actualPointDx.y() + CS
         self.actualPointOrientation.addPoint(QgsPointXY(float(A3x), float(A3y)))
 
-        # # Górny punkt łuku strzałki
-        # CS = self.canvas.mapUnitsPerPixel() * 22
-        # A4x = self.actualPointDx.x() + CS
-        # A4y = self.actualPointDx.y()
-        # self.actualPointOrientation.addPoint(QgsPointXY(float(A4x), float(A4y)))
+        # Następne punkty łuku strzałki
+        CS = self.canvas.mapUnitsPerPixel() * 18
+        A4x = self.actualPointDx.x() + CS * 0.75
+        A4y = self.actualPointDx.y() + CS * 1.25
+        self.actualPointOrientation.addPoint(QgsPointXY(float(A4x), float(A4y)))
+
+        CS = self.canvas.mapUnitsPerPixel() * 18
+        A44x = self.actualPointDx.x() + CS * 0.50
+        A44y = self.actualPointDx.y() + CS * 1.45
+        self.actualPointOrientation.addPoint(QgsPointXY(float(A44x), float(A44y)))
+
+        CS = self.canvas.mapUnitsPerPixel() * 18
+        A444x = self.actualPointDx.x() + CS * 0.25
+        A444y = self.actualPointDx.y() + CS * 1.55
+        self.actualPointOrientation.addPoint(QgsPointXY(float(A444x), float(A444y)))
+
+        # Górny punkt łuku strzałki
+        CS = self.canvas.mapUnitsPerPixel() * 18
+        A5x = self.actualPointDx.x()
+        A5y = self.actualPointDx.y() + CS * 1.6
+        self.actualPointOrientation.addPoint(QgsPointXY(float(A5x), float(A5y)))
+
+        # Następne punkty łuku strzałki
+        CS = self.canvas.mapUnitsPerPixel() * 18
+        A6x = self.actualPointDx.x() - CS * 0.25
+        A6y = self.actualPointDx.y() + CS * 1.55
+        self.actualPointOrientation.addPoint(QgsPointXY(float(A6x), float(A6y)))
+
+        CS = self.canvas.mapUnitsPerPixel() * 18
+        A66x = self.actualPointDx.x() - CS * 0.50
+        A66y = self.actualPointDx.y() + CS * 1.45
+        self.actualPointOrientation.addPoint(QgsPointXY(float(A66x), float(A66y)))
+
+        CS = self.canvas.mapUnitsPerPixel() * 18
+        A666x = self.actualPointDx.x() - CS * 0.75
+        A666y = self.actualPointDx.y() + CS * 1.25
+        self.actualPointOrientation.addPoint(QgsPointXY(float(A666x), float(A666y)))
+
+        # # punkt kończący strzałkę
+        CS = self.canvas.mapUnitsPerPixel() * 18
+        Ax = self.actualPointDx.x() - CS
+        Ay = self.actualPointDx.y() + CS
+        self.actualPointOrientation.addPoint(QgsPointXY(float(Ax), float(Ay)))
 
         # Vision Angle
         if yaw is not None:
