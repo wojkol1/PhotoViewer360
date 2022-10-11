@@ -194,13 +194,11 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         """ połaczenie z javascriptem"""
         self.slots = Slots()
-        self.slots.setXYId(x=123, y=456, id=987)    # push params to JS
+        # self.slots.setXYId(x=123, y=456, id=987)    # push params to JS
         self.cef_widget.page().mainFrame().addToJavaScriptWindowObject("pythonSlot", self.slots)
 
         self.cef_widget.load(QUrl(self.DEFAULT_URL))
         self.ViewerLayout.addWidget(self.cef_widget, 1, 0)
-
-
 
     # def SetInitialYaw(self):
     #     """Set Initial Viewer Yaw"""
@@ -250,11 +248,11 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
                 nazwa_ulicy = str(feature.attributes()[9])
                 numer_odcinka = str(feature.attributes()[10])
                 kilometraz = str(feature.attributes()[11])
-        
+
         fxd = open(self.plugin_path + '/viewer/testtttttt.json')
         data = json.load(fxd)
         print(data['test'])
-        
+
         if nazwa_ulicy == "NULL":
             print(" nazwa ulicy null")
             file_metadata.write(
@@ -264,8 +262,10 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
             file_metadata.write(
                 '<!DOCTYPE html>' + '\n' + '<html lang="pl">' + '\n' + '<head>' + '\n' + '   <meta charset="UTF-8">' + '\n' + '  <title>Photos metadata</title>' + '\n' + '</head>' + '\n' + '<body>' + '\n' + ' <div id="photo_data" style="position: absolute; top: 0; left: 0px; padding-top: 0px;width: 220px; max-height: 100%; overflow: hidden; margin-left: 0; background-color: rgba(58,68,84,0.8); color:white; font-family: inherit; line-height: 0.7;">' + '\n')
             file_metadata.write('<p style="margin-left: 5px;">' + "<b>" + "Numer drogi: " + "</b>" + nr_drogi + "</p>")
-            file_metadata.write('<p style="margin-left: 5px;">' + "<b>" + "Nazwa ulicy: " + "</b>" + nazwa_ulicy + "</p>")
-            file_metadata.write('<p style="margin-left: 5px;">' + "<b>" + "Numer odcinka: " + "</b>" + numer_odcinka + "</p>")
+            file_metadata.write(
+                '<p style="margin-left: 5px;">' + "<b>" + "Nazwa ulicy: " + "</b>" + nazwa_ulicy + "</p>")
+            file_metadata.write(
+                '<p style="margin-left: 5px;">' + "<b>" + "Numer odcinka: " + "</b>" + numer_odcinka + "</p>")
             file_metadata.write('<p style="margin-left: 5px;">' + "<b>" + "Kilometraż: " + "</b>" + kilometraz + "</p>")
 
         file_metadata.write('<p style="margin-left: 5px;">' + "<b>" + "Data: " + "</b>" + dateTime + "</p>")
@@ -273,10 +273,9 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         file_metadata.close()
 
     def GetImage(self):
-        
+
         # Odczytanie współrzędnych klikanego hotspota z pliku JSON
 
-        
         """Create buffer"""
         self.layer.select(self.selected_features.id())
 
@@ -327,7 +326,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
                 fi = math.atan(delta_y / delta_x)
                 azymut = fi + 400
             elif delta_y == 0 and delta_x == 0:  # gdy punkt w tym samym miejscu
-                azymut = 740 # po zamianie na stopnie 666
+                azymut = 740  # po zamianie na stopnie 666
             # skrajne przypadki
             elif delta_y == 0 and delta_x > 0:
                 azymut = 0
@@ -340,11 +339,12 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
             else:
                 pass
 
-            list_of_attribute_list.append(x + ' ' + y + ' ' + str((180*azymut)/200))
-            file_coord = open(self.plugin_path + '/viewer/coordinates.txt', 'w')
-            file_coord.write(str(list_of_attribute_list))
-            file_coord.close()
+            list_of_attribute_list.append(x + ' ' + y + ' ' + str((180 * azymut) / 200))
             self.layer.removeSelection()
+
+        self.slots.setXYId(coordinates=list_of_attribute_list)
+        # coordinate_hotspot = self.slots.getHotSpotDetailsToPython()
+        # print("coordinate_hotspot: ", coordinate_hotspot)
 
         """Get Selected Image"""
         try:

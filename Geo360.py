@@ -52,6 +52,7 @@ from qgis.gui import QgsRubberBand
 # from PyQt4.QtCore import QVariant
 from PIL import Image, ExifTags
 import exifread
+from .slots import Slots
 
 try:
     from pydevd import *
@@ -101,6 +102,7 @@ class Geo360:
         # self.positionSx = QgsRubberBand(
         #     self.iface.mapCanvas(), QgsWkbTypes.PointGeometry
         # )
+        self.slots = Slots()
 
     def add_action(
             self,
@@ -284,6 +286,9 @@ class Geo360:
         "Run after pressing the plugin"
 
         self.dlg.show()
+
+        coordinate_hotspot = self.slots.getHotSpotDetailsToPython()
+        print("coordinate_hotspot: ", coordinate_hotspot)
 
     def click_feature(self):
         """Run click feature"""

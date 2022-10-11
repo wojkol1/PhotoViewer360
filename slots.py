@@ -7,18 +7,38 @@ class Slots(QtCore.QObject):
     _x = 0.0
     _y = 0.0
     _id = -1
+    _coordinates = []
+    _change = False
 
-    def setXYId(self, x, y, id):
+    # def setXYId(self, x, y, id):
+    #     """definiuje wartości parametrów do przekazania do JS"""
+    #     self._x = x
+    #     self._y = y
+    #     self._id = id
+
+    def setXYId(self, coordinates):
         """definiuje wartości parametrów do przekazania do JS"""
-        self._x = x
-        self._y = y
-        self._id = id
+        self._coordinates = coordinates
 
     @QtCore.pyqtSlot(str)
     def showMessage(self, msg):
         """Open a message box and display the specified message."""
         QtWidgets.QMessageBox.information(None, "Info", msg)
 
+    # @QtCore.pyqtSlot(result=list)
+    # def getPhotoDetails(self):
+    #     return [self._id, self._x, self._y]
+
     @QtCore.pyqtSlot(result=list)
     def getPhotoDetails(self):
-        return [self._id, self._x, self._y]
+        return [self._coordinates]
+
+    def setXYtoPython(self, x, y, change):
+        """definiuje wartości parametrów do przekazania do Python"""
+        self._x = x
+        self._y = y
+        self._change = change
+
+    @QtCore.pyqtSlot(result=list)
+    def getHotSpotDetailsToPython(self):
+        return [self._x, self._y, self._change]

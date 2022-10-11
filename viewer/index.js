@@ -59,26 +59,30 @@ const positions =[]
 const coord_x =[]
 const coord_y =[]
 
-jQuery.get('./coordinates.txt', function(data) {
-  var aLines = data.split(",")
-  aLines.forEach(function(element){
-    var coord_substr = element.substr(2)
-    // $('#coord').text(coord_substr);
-    var coord_end = coord_substr.replace("'","").replace("]","")
-    // $('#coord').text(coord_end);
-    var coord = coord_end.split(" ")
-    // $('#coord').text(coord[0]);
+let data_coord = pythonSlot.getPhotoDetails();
+//alert(data_coord.toString());
+//$('#coord').text(data_coord.toString());
+
+var aLines = data_coord.toString().split(",")
+aLines.forEach(function(element){
+//$('#coord').text(element);
+//var coord_substr = element.substr(2)
+// $('#coord').text(coord_substr);
+//var coord_end = coord_substr.replace("'","").replace("]","")
+// $('#coord').text(coord_end);
+    var coord = element.split(" ")
+//    $('#coord').text(coord[0]);
     if (coord[2] === '666.0'){
       var x = parseFloat(coord[0])
       var y = parseFloat(coord[1])
-      // $('#coord').text(aLines);
+//      $('#coord').text(aLines);
       for (let i=0; i<(aLines.length); i++){
-        // $('#coord').text(aLines[i]);
-        var coord_substr = aLines[i].substr(2)
+//         $('#coord').text(aLines[i]);
+//        var coord_substr = aLines[i].substr(2)
         // $('#coord').text(aLines);
-        var coord_end = coord_substr.replace("'","").replace("]","")
-        var coord = coord_end.split(" ")
-        // $('#coord').text('coord: '+coord);
+//        var coord_end = coord_substr.replace("'","").replace("]","")
+        var coord = aLines[i].split(" ")
+//         $('#coord').text('coord: '+coord);
           if (coord[2]!='666.0'){
             // $('#coord').text('coord: '+coord);
             var x1 = parseFloat(coord[0])
@@ -94,47 +98,45 @@ jQuery.get('./coordinates.txt', function(data) {
           }
       }
     }
-  })
-  // $('#coord').text('positions: '+positions)
-  for (let i=0; i<positions.length; i++) {
-    var container = document.getElementById('container');
-    container.innerHTML += '<div id="link-hotspot"><img class="link-hotspot-icon" src="img/hotspot.png"></div>'
-  }
-  var list = document.querySelectorAll("#link-hotspot");
-  // $('#coord').text('positions: '+list.length)
-  for (let i=0; i<list.length; i++) {
-    scene.hotspotContainer().createHotspot(list[i], {yaw: positions[i]});
-    list[i].addEventListener('click', function() {
-      //alert('x= '+coord_x[i]+', y= '+coord_y[i]);
+})
 
-      /*
-      pythonSlot - obiekt js umożliwiający komunikację z pythonem
-      */
+// $('#coord').text('positions: '+positions)
+for (let i=0; i<positions.length; i++) {
+var container = document.getElementById('container');
+container.innerHTML += '<div id="link-hotspot"><img class="link-hotspot-icon" src="img/hotspot.png"></div>'
+}
+var list = document.querySelectorAll("#link-hotspot");
+// $('#coord').text('positions: '+list.length)
+for (let i=0; i<list.length; i++) {
+scene.hotspotContainer().createHotspot(list[i], {yaw: positions[i]});
+list[i].addEventListener('click', function() {
+  //alert('x= '+coord_x[i]+', y= '+coord_y[i]);
+
+  /*
+  pythonSlot - obiekt js umożliwiający komunikację z pythonem
+  */
 
 
-      let a = pythonSlot.getPhotoDetails();
-      alert(a.toString());
-      pythonSlot.showMessage('Hello from WebKit');
+//      let a = pythonSlot.getPhotoDetails();
+//      alert(a.toString());
+  pythonSlot.showMessage('Hello from WebKit');
+  pythonSlot.setXYtoPython(coord_x[i], coord_y[i], True)
 
-      $('#coord').text('x= ' + coord_x[i]+', y= '+coord_y[i]);
-      // var data = '\r x: ' + coord_x[i] + ' \r\n ' + 'y: ' +coord_y[i];
-      var coord = document.getElementById('coord');
-      coord.innerHTML += toString(x+","+y)
-      // data.toBlob(function(blob) {
-      //   saveAs(blob, "coord_hotspot.txt");
-      // });
-      // var file = new Blob([data], {type: "text/plain;charset=utf-8"});
-      // saveAs(file, "/coord_hotspot.txt");
-      // alert(file)
-      // jQuery.get('./coord_hotspot.txt', function(data){
-      //   data.append("data","współrzędne")
-      // })
-    });
-    }
+  $('#coord').text('x= ' + coord_x[i]+', y= '+coord_y[i]);
+  // var data = '\r x: ' + coord_x[i] + ' \r\n ' + 'y: ' +coord_y[i];
+  var coord = document.getElementById('coord');
+  coord.innerHTML += toString(x+","+y)
+  // data.toBlob(function(blob) {
+  //   saveAs(blob, "coord_hotspot.txt");
+  // });
+  // var file = new Blob([data], {type: "text/plain;charset=utf-8"});
+  // saveAs(file, "/coord_hotspot.txt");
+  // alert(file)
+  // jQuery.get('./coord_hotspot.txt', function(data){
+  //   data.append("data","współrzędne")
+  // })
 });
-
-//////////////////////////// NOWE PODEJŚCIE///////////////////////////////////////////////
-
+}
 
 // DOM elements for view controls.
 var viewUpElement = document.querySelector('#viewUp');
