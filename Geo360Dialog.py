@@ -138,6 +138,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         self.selected_features = qgsutils.getToFeature(self.layer, self.featuresId)
 
+
         # Get image path
         self.current_image = self.GetImage()
         print("type path image: ", self.current_image)
@@ -249,10 +250,6 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
                 numer_odcinka = str(feature.attributes()[10])
                 kilometraz = str(feature.attributes()[11])
 
-        fxd = open(self.plugin_path + '/viewer/testtttttt.json')
-        data = json.load(fxd)
-        print(data['test'])
-
         if nazwa_ulicy == "NULL":
             print(" nazwa ulicy null")
             file_metadata.write(
@@ -273,8 +270,6 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         file_metadata.close()
 
     def GetImage(self):
-
-        # Odczytanie współrzędnych klikanego hotspota z pliku JSON
 
         """Create buffer"""
         self.layer.select(self.selected_features.id())
@@ -309,37 +304,13 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
             x = feat.attributes()[5]
             y = feat.attributes()[6]
 
-            # azymut
-            delta_x = float(x) - float(x_punktu)
-            delta_y = float(y) - float(y_punktu)
-
-            if delta_y > 0 and delta_x > 0:  # I ćwiartka
-                fi = math.atan(delta_y / delta_x)
-                azymut = fi
-            elif delta_y > 0 and delta_x < 0:  # II ćwiartka
-                fi = math.atan(delta_y / delta_x)
-                azymut = fi + 200
-            elif delta_y < 0 and delta_x < 0:  # III ćwiartka
-                fi = math.atan(delta_y / delta_x)
-                azymut = fi + 200
-            elif delta_y < 0 and delta_x > 0:  # IV ćwiartka
-                fi = math.atan(delta_y / delta_x)
-                azymut = fi + 400
-            elif delta_y == 0 and delta_x == 0:  # gdy punkt w tym samym miejscu
-                azymut = 740  # po zamianie na stopnie 666
-            # skrajne przypadki
-            elif delta_y == 0 and delta_x > 0:
-                azymut = 0
-            elif delta_y == 0 and delta_x < 0:
-                azymut = 200
-            elif delta_x == 0 and delta_y > 0:
-                azymut = 100
-            elif delta_x == 0 and delta_y < 0:
-                azymut = 300
-            else:
-                pass
-
-            list_of_attribute_list.append(x + ' ' + y + ' ' + str((180 * azymut) / 200))
+            centr = QgsPointXY(float(x), float(y))
+            pkt = QgsPointXY(float(x_punktu), float(y_punktu))
+            
+            azymut = centr.azimuth(pkt)
+            print('azymut: ', azymut)
+            
+            list_of_attribute_list.append(x + ' ' + y + ' ' + str(azymut))
             self.layer.removeSelection()
 
         self.slots.setXYId(coordinates=list_of_attribute_list)
@@ -430,16 +401,17 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         pixmap = self.cef_widget.grab()
         pixmap.save(image_path)
         print("image path after save: ", image_path)
+        print("self.bearing: ", self.bearing)
 
-    def UpdateOrientation(self, yaw=None):
+    def UpdateOrientation(self):
         """Update Orientation"""
         self.bearing = self.selected_features.attribute(config.column_yaw)
-        # print("self.bearing: ", self.bearing)
+        print("self.bearing: ", self.bearing)
         try:
             self.actualPointOrientation.reset()
             # print("actualPointOrientation update orientation reset")
         except Exception:
-            # print("actualPointOrientation update orientation")
+            print("actualPointOrientation update orientation")
             pass
 
         self.actualPointOrientation = QgsRubberBand(
@@ -521,8 +493,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         tmpGeom = self.actualPointOrientation.asGeometry()
 
         self.actualPointOrientation.setToGeometry(
-            self.rotateTool.rotate(tmpGeom, self.actualPointDx, angle), self.dumLayer,
-            print("obraca się")
+            self.rotateTool.rotate(tmpGeom, self.actualPointDx, angle), self.dumLayer
         )
 
     def setOrientation(self, yaw=None):
