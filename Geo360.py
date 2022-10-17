@@ -210,9 +210,9 @@ class Geo360:
         self.dlg.mQgsFileWidget_search_photo.fileChanged.connect(
             lambda: self.settings.setValue("",
                                            self.dlg.mQgsFileWidget_search_photo.filePath()))
-
+        self.dlg.mQgsFileWidget_save_gpkg.setFilter("geoPackage(*.gpkg)")
         self.dlg.mQgsFileWidget_save_gpkg.setFilePath(
-            self.settings.value(QgsProject.instance().homePath() + "/plik_geopackage",
+            self.settings.value(QgsProject.instance().homePath(),
                                 QgsProject.instance().homePath() + "/plik_geopackage"))
         self.dlg.mQgsFileWidget_save_gpkg.fileChanged.connect(
             lambda: self.settings.setValue(QgsProject.instance().homePath(),
@@ -345,6 +345,10 @@ class Geo360:
             return False
 
     def create_gpkg(self, photo_path, gpkg_path):
+        """
+        Creates GPKG based on image files
+        """
+        gpkg_path = os.path.join(gpkg_path)
         try:
             gpkg_temporary = processing.run("native:importphotos", {
                 'FOLDER': photo_path,
@@ -353,13 +357,14 @@ class Geo360:
 
         except:
             print("Tool Import Geotagged Photos failed!")
-
-        gpkg_name = gpkg_path.split('\\')[-1].split('.')[0]
-        print("gpkg_name: ", gpkg_name)
+        gpkg_name = os.path.splitext(gpkg_path)[0]
+        # gpkg_name = gpkg_path.split('\\')[-1].split('.')[0]
+        print("----gpkg_name: ", gpkg_name)
 
         # vlayer = list(gpkg_temporary.values())[0]
         # QgsProject.instance().addMapLayer(vlayer)
         vlayer = QgsVectorLayer(gpkg_path, gpkg_name, "ogr")
+
         if not vlayer.isValid():
             print("Layer failed to load!")
         else:
@@ -510,7 +515,7 @@ class Geo360:
     def nadpisanie_plik_button_clicked(self, photo_path, gpkg_path):
         print("nadpisanie gpkg")
 
-        vlayer_overwrite = self.create_gpkg(photo_path, plugin_dir + "/temporary_files/overwrite.gpkg")
+        vlayer_overwrite = self.create_gpkg(photo_path, os.path.join(plugin_dir, 'temporary_files', 'overwrite.gpkg'))
         # vlayer_overwrite.setName(gpkg_path.split('\\')[-1].split('.')[0] + "_overwrite")
         # QgsProject.instance().addMapLayer(vlayer_overwrite)
 
@@ -554,7 +559,7 @@ class Geo360:
     def fromPhotos_btn_clicked(self):
         self.is_press_button = True
 
-        photo_path = self.dlg.mQgsFileWidget_search_photo.filePath()
+        photo_path = os.path.join(self.dlg.mQgsFileWidget_search_photo.filePath())
         if not self.checkSavePath(photo_path):
             return False
 
@@ -651,12 +656,12 @@ class Geo360:
 
     def fromGPKG_btn_clicked(self):
         self.is_press_button = True
-        gpkg_path = self.dlg.mQgsFileWidget_search_gpkg.filePath()
+        gpkg_path = os.path.join(self.dlg.mQgsFileWidget_search_gpkg.filePath())
         if not self.checkSavePath(gpkg_path):
             return False
-
-        gpkg_name = gpkg_path.split('\\')[-1].split('.')[0]
-        print("gpkg_name: ", gpkg_name)
+        gpkg_name = os.path.splitext(gpkg_path)[0]
+        # gpkg_name = gpkg_path.split('\\')[-1].split('.')[0]
+        print("ppp-gpkg_name: ", gpkg_name)
 
         vlayer = QgsVectorLayer(gpkg_path, gpkg_name, "ogr")
         if not vlayer.isValid():
@@ -696,13 +701,11 @@ class Geo360:
 
     def checkSavePath(self, path):
         """Sprawdza czy ścieżka jest poprawna i zwraca Boolean"""
-        if not path:
-            self.iface.messageBar().pushCritical("Ostrzeżenie:",
-                                                 'Nie wskazano ścieżki do pliku/folderu')
+        if not path or path == '':
+            QMessageBox(QMessageBox.Warning, "Ostrzeżenie:", 'Nie wskazano ścieżki do pliku/folderu').exec_()
             return False
         elif not os.path.exists(path):
-            self.iface.messageBar().pushCritical("Ostrzeżenie:",
-                                                 'Wskazano nieistniejącą ścieżkę do odczytu plików/folderu')
+            QMessageBox(QMessageBox.Warning, "Ostrzeżenie:", 'Wskazano nieistniejącą ścieżkę do odczytu plików/folderu').exec_()
             return False
         else:
             return True

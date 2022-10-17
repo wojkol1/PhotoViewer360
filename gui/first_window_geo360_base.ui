@@ -222,7 +222,7 @@
       <item>
        <widget class="QPushButton" name="fromPhotos_btn">
         <property name="text">
-         <string>Przeglądaj</string>
+         <string>Importuj</string>
         </property>
        </widget>
       </item>
