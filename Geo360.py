@@ -559,14 +559,12 @@ class Geo360:
     def fromPhotos_btn_clicked(self):
         self.is_press_button = True
 
-        photo_path = os.path.join(self.dlg.mQgsFileWidget_search_photo.filePath())
+        photo_path = self.dlg.mQgsFileWidget_search_photo.filePath()
         if not self.checkSavePath(photo_path):
             return False
 
         gpkg_path = self.dlg.mQgsFileWidget_save_gpkg.filePath()
-        if gpkg_path.find('.gpkg') != -1:
-            pass
-        else:
+        if gpkg_path.find('.gpkg') == -1:
             print("dopisanie rozszerzenia")
             gpkg_path = gpkg_path + '.gpkg'
 
@@ -579,9 +577,8 @@ class Geo360:
         # self.iface.messageBar().pushWidget(progressMessageBar, Qgis.Info)
         # progress.setValue()
 
-        if not gpkg_path:
-            self.iface.messageBar().pushCritical("Ostrzeżenie:",
-                                                 'Nie wskazano wskazano miejsca zapisu plików')
+        if not gpkg_path or gpkg_path == '':
+            QMessageBox(QMessageBox.Warning, "Ostrzeżenie:", 'Nie wskazano wskazano miejsca zapisu plików').exec_()
             return False
         elif os.path.exists(gpkg_path):
             msgBox = QMessageBox(QMessageBox.Information, "Informacja",
@@ -597,7 +594,6 @@ class Geo360:
                 # self.usuniecie_warstwy_z_projektu(gpkg_path)
                 self.usuniecie_wartosci_gpkg(gpkg_path)
                 self.nadpisanie_plik_button_clicked(photo_path, gpkg_path)
-
                 self.dlg.hide()
                 self.click_feature()
             elif msgBox.clickedButton() == nadpisanie_plik_button:
@@ -666,8 +662,9 @@ class Geo360:
         vlayer = QgsVectorLayer(gpkg_path, gpkg_name, "ogr")
         if not vlayer.isValid():
             print("Layer failed to load!")
-        else:
-            QgsProject.instance().addMapLayer(vlayer)
+            return False
+
+        QgsProject.instance().addMapLayer(vlayer)
 
         print("importphotos and name layer: ", vlayer.name())
         self.useLayer = vlayer.name()
