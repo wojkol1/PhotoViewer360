@@ -37,6 +37,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from threading import Thread
 import time, os
 import processing
+from pathlib import Path
 from PyQt5.QtWidgets import QFileDialog
 # from qgis.core import QgsVectorLayer
 from qgis.core import *
@@ -357,7 +358,7 @@ class Geo360:
 
         except:
             print("Tool Import Geotagged Photos failed!")
-        gpkg_name = os.path.splitext(gpkg_path)[0]
+        gpkg_name = Path(gpkg_path).stem
         # gpkg_name = gpkg_path.split('\\')[-1].split('.')[0]
         print("----gpkg_name: ", gpkg_name)
 
