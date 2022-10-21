@@ -43,6 +43,7 @@ view.addEventListener('change', viewChangeHandler);
 const positions =[]
 const coord_x =[]
 const coord_y =[]
+const index_list = []
 
 let data_coord = pythonSlot.getPhotoDetails();
 //alert(data_coord.toString());
@@ -70,6 +71,8 @@ aLines.forEach(function(element){
             coord_x.push(x1)
             var y1 = parseFloat(coord[1])
             coord_y.push(y1)
+            var index = coord[3]
+            index_list.push(index)
             var az = 295
             var position = (Math.PI/180)*az-(Math.atan2(x-x1,y-y1))
             // $('#coord').text('x1= '+x1+'x= '+x+'position: '+position);
@@ -93,12 +96,13 @@ for (let i=0; i<list.length; i++) {
   */
 //      let a = pythonSlot.getPhotoDetails();
 //      alert(a.toString());
-  pythonSlot.showMessage('Hello from WebKit');
-  pythonSlot.setXYtoPython(coord_x[i], coord_y[i], True)
+  // pythonSlot.showMessage('Hello from WebKit: ' + coord_x[i] + " " + coord_y[i] + " " + index_list[i]);
+  pythonSlot.setXYtoPython(coord_x[i], coord_y[i], index_list[i]);
+  // pythonSlot.setXYtoPython(coord_x[i], coord_y[i], index_list[i], True);
 
-  $('#coord').text('x= ' + coord_x[i]+', y= '+coord_y[i]);
+  $('#coord').text('x= ' + coord_x[i]+', y= '+coord_y[i] + ', index = ' + index_list[i]);
   var coord = document.getElementById('coord');
-  coord.innerHTML += toString(x+","+y)
+  coord.innerHTML += toString(x+","+y);
 });
 }
 

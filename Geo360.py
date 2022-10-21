@@ -20,7 +20,7 @@
 import shutil
 
 from qgis.gui import QgsMapToolIdentify
-from qgis.PyQt.QtCore import Qt, QSettings, QThread, QVariant
+from qgis.PyQt.QtCore import Qt, QSettings, QThread, QVariant, pyqtSignal 
 from qgis.PyQt.QtGui import QIcon, QCursor, QPixmap
 from qgis.PyQt.QtWidgets import QAction, QMessageBox, QProgressBar
 
@@ -31,7 +31,7 @@ from PhotoViewer360.gui.first_window_geo360_dialog import FirstWindowGeo360Dialo
 import PhotoViewer360.config as config
 from PhotoViewer360.utils.log import log
 from PhotoViewer360.utils.qgsutils import qgsutils
-from qgis.core import QgsApplication
+from qgis.core import QgsApplication, QgsMessageLog, Qgis
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from threading import Thread
@@ -70,7 +70,7 @@ class QuietHandler(SimpleHTTPRequestHandler):
 
 class Geo360:
     """QGIS Plugin Implementation."""
-
+    
     def __init__(self, iface):
 
         self.config = None
@@ -90,6 +90,9 @@ class Geo360:
         self.settings = QgsSettings()
         self.useLayer = ""
         self.is_press_button = False
+        self.dlg.slots = Slots()
+        self.dlg.slots.newPoint.connect(self.choseHotSpot)
+
 
         # self.actualPointOrientation = QgsRubberBand(
         #     self.iface.mapCanvas(), QgsWkbTypes.LineGeometry
@@ -103,7 +106,10 @@ class Geo360:
         # self.positionSx = QgsRubberBand(
         #     self.iface.mapCanvas(), QgsWkbTypes.PointGeometry
         # )
-        self.slots = Slots()
+
+        # self.slots = Slots()
+        
+        
 
     def add_action(
             self,
@@ -230,6 +236,9 @@ class Geo360:
         self.dlg.mapLayerComboBox.setFilters(QgsMapLayerProxyModel.PointLayer)
         self.dlg.mapLayerComboBox.setShowCrs(True)
 
+        # self.slots.valChange.connect(self.choseHotSpot)
+
+
     # def unload(self):
     #     """Unload Geo360 tool"""
     #     self.iface.removePluginMenu(u"&PhotoViewer360", self.action)
@@ -288,8 +297,16 @@ class Geo360:
 
         self.dlg.show()
 
-        coordinate_hotspot = self.slots.getHotSpotDetailsToPython()
-        print("coordinate_hotspot: ", coordinate_hotspot)
+        # coordinate_hotspot = self.slots.getHotSpotDetailsToPython()
+        # print("coordinate_hotspot: ", coordinate_hotspot)
+        # self.slots.newPoint.connect(self.choseHotSpot)
+
+        
+        
+    def choseHotSpot(self):
+        print("wykryto hot spot !!!!!!!!!")
+        QgsMessageLog.logMessage("Our log message", level=Qgis.Warning)   
+        raise Exception("Udało się ")
 
     def click_feature(self):
         """Run click feature"""

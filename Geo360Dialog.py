@@ -138,7 +138,6 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         self.selected_features = qgsutils.getToFeature(self.layer, self.featuresId)
 
-
         # Get image path
         self.current_image = self.GetImage()
         print("type path image: ", self.current_image)
@@ -250,6 +249,10 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
                 numer_odcinka = str(feature.attributes()[10])
                 kilometraz = str(feature.attributes()[11])
 
+        # fxd = open(self.plugin_path + '/viewer/testtttttt.json')
+        # data = json.load(fxd)
+        # print(data['test'])
+
         if nazwa_ulicy == "NULL":
             print(" nazwa ulicy null")
             file_metadata.write(
@@ -271,12 +274,14 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
     def GetImage(self):
 
+        # Odczytanie współrzędnych klikanego hotspota z pliku JSON
+
         """Create buffer"""
         self.layer.select(self.selected_features.id())
 
         features = self.layer.selectedFeatures()
         for feat in features:
-            x_punktu = feat.attributes()[5]
+            x_punktu = feat.attributes()[5] # z geometrii fead.geometry(aspoint
             y_punktu = feat.attributes()[6]
 
         selected_feature_2180 = processing.run("native:reprojectlayer", {
@@ -303,14 +308,17 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         for feat in self.layer.selectedFeatures():
             x = feat.attributes()[5]
             y = feat.attributes()[6]
+            index_feature = feat.id()
+            print("index: ", index_feature)
 
+            # azymut
             centr = QgsPointXY(float(x), float(y))
             pkt = QgsPointXY(float(x_punktu), float(y_punktu))
             
             azymut = centr.azimuth(pkt)
             print('azymut: ', azymut)
-            
-            list_of_attribute_list.append(x + ' ' + y + ' ' + str(azymut))
+
+            list_of_attribute_list.append(x + ' ' + y + ' ' + str((180 * azymut) / 200) + ' ' + str(index_feature))
             self.layer.removeSelection()
 
         self.slots.setXYId(coordinates=list_of_attribute_list)
@@ -401,17 +409,16 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         pixmap = self.cef_widget.grab()
         pixmap.save(image_path)
         print("image path after save: ", image_path)
-        print("self.bearing: ", self.bearing)
 
-    def UpdateOrientation(self):
+    def UpdateOrientation(self, yaw=None):
         """Update Orientation"""
         self.bearing = self.selected_features.attribute(config.column_yaw)
-        print("self.bearing: ", self.bearing)
+        # print("self.bearing: ", self.bearing)
         try:
             self.actualPointOrientation.reset()
             # print("actualPointOrientation update orientation reset")
         except Exception:
-            print("actualPointOrientation update orientation")
+            # print("actualPointOrientation update orientation")
             pass
 
         self.actualPointOrientation = QgsRubberBand(
@@ -493,7 +500,8 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         tmpGeom = self.actualPointOrientation.asGeometry()
 
         self.actualPointOrientation.setToGeometry(
-            self.rotateTool.rotate(tmpGeom, self.actualPointDx, angle), self.dumLayer
+            self.rotateTool.rotate(tmpGeom, self.actualPointDx, angle), self.dumLayer,
+            print("obraca się")
         )
 
     def setOrientation(self, yaw=None):
