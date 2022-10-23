@@ -195,6 +195,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         """ połaczenie z javascriptem"""
         self.slots = Slots()
+
         # self.slots.setXYId(x=123, y=456, id=987)    # push params to JS
         self.cef_widget.page().mainFrame().addToJavaScriptWindowObject("pythonSlot", self.slots)
 

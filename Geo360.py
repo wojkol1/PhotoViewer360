@@ -103,7 +103,6 @@ class Geo360:
         # self.positionSx = QgsRubberBand(
         #     self.iface.mapCanvas(), QgsWkbTypes.PointGeometry
         # )
-        self.slots = Slots()
 
     def add_action(
             self,
@@ -230,12 +229,16 @@ class Geo360:
         self.dlg.mapLayerComboBox.setFilters(QgsMapLayerProxyModel.PointLayer)
         self.dlg.mapLayerComboBox.setShowCrs(True)
 
+
+
     # def unload(self):
     #     """Unload Geo360 tool"""
     #     self.iface.removePluginMenu(u"&PhotoViewer360", self.action)
     #     self.iface.removeToolBarIcon(self.action)
     #     # Close server
     #     self.close_server()
+    def test(self):
+        print('obsługa Sygnału')
 
     def unload(self):
         """Unload Geo360 tool"""
@@ -288,8 +291,7 @@ class Geo360:
 
         self.dlg.show()
 
-        coordinate_hotspot = self.slots.getHotSpotDetailsToPython()
-        print("coordinate_hotspot: ", coordinate_hotspot)
+
 
     def click_feature(self):
         """Run click feature"""
@@ -696,6 +698,9 @@ class Geo360:
                 press_button=self.is_press_button
             )
             self.iface.addDockWidget(Qt.BottomDockWidgetArea, self.orbitalViewer)
+            self.orbitalViewer.slots.signal.connect(self.test)
+        coordinate_hotspot = self.orbitalViewer.slots.getHotSpotDetailsToPython()
+        print("coordinate_hotspot: ", coordinate_hotspot)
 
     def checkSavePath(self, path):
         """Sprawdza czy ścieżka jest poprawna i zwraca Boolean"""

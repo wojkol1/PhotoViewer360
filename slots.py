@@ -9,7 +9,7 @@ class Slots(QtCore.QObject):
     _id = -1
     _coordinates = []
     _change = False
-
+    signal = QtCore.pyqtSignal()
     # def setXYId(self, x, y, id):
     #     """definiuje wartości parametrów do przekazania do JS"""
     #     self._x = x
@@ -24,7 +24,8 @@ class Slots(QtCore.QObject):
     def showMessage(self, msg):
         """Open a message box and display the specified message."""
         QtWidgets.QMessageBox.information(None, "Info", msg)
-
+        print('ttt')
+        self.signal.emit()
     # @QtCore.pyqtSlot(result=list)
     # def getPhotoDetails(self):
     #     return [self._id, self._x, self._y]
