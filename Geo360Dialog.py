@@ -160,7 +160,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         # Set RubberBand
         self.resetQgsRubberBand()
-        self.setOrientation()
+        self.UpdateOrientation()
         self.setPosition()
 
         # FullScreen
@@ -353,6 +353,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         self.cef_widget.load(QUrl(new_url))
 
     def ClickHotspot(self):
+        """Reaload Image viewer after click hotspot"""
 
         print("click hotspot")
         coordinate_hotspot = self.slots.getHotSpotDetailsToPython()
@@ -361,65 +362,14 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         print("layer: ", self.layer)
         newId = int(coordinate_hotspot[2])
 
-
-        """Reaload Image viewer after click hotspot"""
-
-        self.cef_widget = QWebView()
-        self.cef_widget.setContextMenuPolicy(Qt.NoContextMenu)
-
-        self.cef_widget.settings().setAttribute(QWebSettings.JavascriptEnabled, True)
-        pano_view_settings = self.cef_widget.settings()
-        pano_view_settings.setAttribute(QWebSettings.WebGLEnabled, True)
-        pano_view_settings.setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
-        pano_view_settings.setAttribute(QWebSettings.Accelerated2dCanvasEnabled, True)
-        pano_view_settings.setAttribute(QWebSettings.JavascriptEnabled, True)
-
-        self.page = _ViewerPage()
-        self.page.newData.connect(self.onNewData)
-        self.cef_widget.setPage(self.page)
-
-        # """ połaczenie z javascriptem"""
-        self.slots = Slots()
-
-        # # self.slots.setXYId(x=123, y=456, id=987)    # push params to JS
-        self.cef_widget.page().mainFrame().addToJavaScriptWindowObject("pythonSlot", self.slots)
-
-        self.cef_widget.load(QUrl(self.DEFAULT_URL))
-        self.ViewerLayout.addWidget(self.cef_widget, 1, 0)
-
-
-        self.selected_features = qgsutils.getToFeature(self.layer, newId)
-        print("ReloadView Hotspot")
-
-        self.current_image = self.GetImage()
-
-        # Check if image exist
-        if os.path.exists(self.current_image) is False:
-            qgsutils.showUserAndLogMessage(
-                u"Information: ", u"There is no associated image."
-            )
-            self.ChangeUrlViewer(self.DEFAULT_EMPTY)
-            self.resetQgsRubberBand()
-            return
-
-        # Copy file to local server
-        self.CopyFile(self.current_image)
-
-        # Set RubberBand
-        self.resetQgsRubberBand()
-        self.setOrientation()
-        self.setPosition()
-
-        self.ChangeUrlViewer(self.DEFAULT_URL)
-
-        self.slots.signal.connect(self.ClickHotspot)
+        self.ReloadView(newId)
 
 
     def ReloadView(self, newId):
         """Reaload Image viewer"""
-        self.setWindowState(self.windowState() & ~Qt.WindowMinimized | Qt.WindowActive)
-        # this will activate the window
-        self.activateWindow()
+        # self.setWindowState(self.windowState() & ~Qt.WindowMinimized | Qt.WindowActive)
+        # # this will activate the window
+        # self.activateWindow()
 
         self.cef_widget = QWebView()
         self.cef_widget.setContextMenuPolicy(Qt.NoContextMenu)
@@ -469,7 +419,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         # Set RubberBand
         self.resetQgsRubberBand()
-        self.setOrientation()
+        self.UpdateOrientation()
         self.setPosition()
 
         # Copy file to local server
@@ -511,6 +461,15 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
     def UpdateOrientation(self, yaw=None):
         """Update Orientation"""
         self.bearing = self.selected_features.attribute(config.column_yaw)
+
+        originalPoint = self.selected_features.geometry().asPoint()
+        self.actualPointDx = qgsutils.convertProjection(
+            originalPoint.x(),
+            originalPoint.y(),
+            self.layer.crs().authid(),
+            self.canvas.mapSettings().destinationCrs().authid(),
+        ) 
+        
         print("self.bearing: ", self.bearing)
         try:
             self.actualPointOrientation.reset()
@@ -596,108 +555,12 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         else:
             angle = float(self.bearing) * math.pi / -180
 
-        tmpGeom = self.actualPointOrientation.asGeometry()
+        # tmpGeom = self.actualPointOrientation.asGeometry()
 
-        self.actualPointOrientation.setToGeometry(
-            self.rotateTool.rotate(tmpGeom, self.actualPointDx, angle), self.dumLayer,
-            print("obraca się")
-        )
-
-    def setOrientation(self, yaw=None):
-        """Set Orientation in the first time"""
-        self.bearing = self.selected_features.attribute(config.column_yaw)
-
-        originalPoint = self.selected_features.geometry().asPoint()
-        self.actualPointDx = qgsutils.convertProjection(
-            originalPoint.x(),
-            originalPoint.y(),
-            self.layer.crs().authid(),
-            self.canvas.mapSettings().destinationCrs().authid(),
-        )
-
-        # try:
-        #     self.actualPointOrientation.reset()
-        #     print("actualPointOrientation set orientation reset")
-        # except Exception:
-        #     print("actualPointOrientation set orientation")
-        #     pass
-
-        self.actualPointOrientation = QgsRubberBand(
-            self.iface.mapCanvas(), QgsWkbTypes.LineGeometry
-        )
-
-        self.actualPointOrientation.setColor(Qt.gray)
-        self.actualPointOrientation.setWidth(5)
-
-        # self.actualPointOrientation.addPoint(self.actualPointDx)
-
-        # Lewy punkt
-        CS = self.canvas.mapUnitsPerPixel() * 18
-        A2x = self.actualPointDx.x() - CS
-        A2y = self.actualPointDx.y() + CS
-        self.actualPointOrientation.addPoint(QgsPointXY(float(A2x), float(A2y)))
-
-        # Górny punkt strzałki
-        CS = self.canvas.mapUnitsPerPixel() * 18
-        A1x = self.actualPointDx.x()
-        A1y = self.actualPointDx.y()
-        self.actualPointOrientation.addPoint(QgsPointXY(float(A1x), float(A1y)))
-
-        # Prawy punkt
-        CS = self.canvas.mapUnitsPerPixel() * 18
-        A3x = self.actualPointDx.x() + CS
-        A3y = self.actualPointDx.y() + CS
-        self.actualPointOrientation.addPoint(QgsPointXY(float(A3x), float(A3y)))
-
-        # Następne punkty łuku strzałki
-        CS = self.canvas.mapUnitsPerPixel() * 18
-        A4x = self.actualPointDx.x() + CS * 0.75
-        A4y = self.actualPointDx.y() + CS * 1.25
-        self.actualPointOrientation.addPoint(QgsPointXY(float(A4x), float(A4y)))
-
-        CS = self.canvas.mapUnitsPerPixel() * 18
-        A44x = self.actualPointDx.x() + CS * 0.50
-        A44y = self.actualPointDx.y() + CS * 1.45
-        self.actualPointOrientation.addPoint(QgsPointXY(float(A44x), float(A44y)))
-
-        CS = self.canvas.mapUnitsPerPixel() * 18
-        A444x = self.actualPointDx.x() + CS * 0.25
-        A444y = self.actualPointDx.y() + CS * 1.55
-        self.actualPointOrientation.addPoint(QgsPointXY(float(A444x), float(A444y)))
-
-        # Górny punkt łuku strzałki
-        CS = self.canvas.mapUnitsPerPixel() * 18
-        A5x = self.actualPointDx.x()
-        A5y = self.actualPointDx.y() + CS * 1.6
-        self.actualPointOrientation.addPoint(QgsPointXY(float(A5x), float(A5y)))
-
-        # Następne punkty łuku strzałki
-        CS = self.canvas.mapUnitsPerPixel() * 18
-        A6x = self.actualPointDx.x() - CS * 0.25
-        A6y = self.actualPointDx.y() + CS * 1.55
-        self.actualPointOrientation.addPoint(QgsPointXY(float(A6x), float(A6y)))
-
-        CS = self.canvas.mapUnitsPerPixel() * 18
-        A66x = self.actualPointDx.x() - CS * 0.50
-        A66y = self.actualPointDx.y() + CS * 1.45
-        self.actualPointOrientation.addPoint(QgsPointXY(float(A66x), float(A66y)))
-
-        CS = self.canvas.mapUnitsPerPixel() * 18
-        A666x = self.actualPointDx.x() - CS * 0.75
-        A666y = self.actualPointDx.y() + CS * 1.25
-        self.actualPointOrientation.addPoint(QgsPointXY(float(A666x), float(A666y)))
-
-        # # punkt kończący strzałkę
-        CS = self.canvas.mapUnitsPerPixel() * 18
-        Ax = self.actualPointDx.x() - CS
-        Ay = self.actualPointDx.y() + CS
-        self.actualPointOrientation.addPoint(QgsPointXY(float(Ax), float(Ay)))
-
-        # Vision Angle
-        if yaw is not None:
-            angle = float(self.bearing + yaw) * math.pi / -180
-        else:
-            angle = float(self.bearing) * math.pi / -180
+        # self.actualPointOrientation.setToGeometry(
+        #     self.rotateTool.rotate(tmpGeom, self.actualPointDx, angle), self.dumLayer,
+        #     print("obraca się")
+        # )
 
         tmpGeom = self.actualPointOrientation.asGeometry()
 
@@ -709,6 +572,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         self.actualPointOrientation.setToGeometry(
             self.rotateTool.rotate(tmpGeom, self.actualPointDx, angle), self.dumLayer
         )
+
 
     def setPosition(self):
         """Set RubberBand Position"""
