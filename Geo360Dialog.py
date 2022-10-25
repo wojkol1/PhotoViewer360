@@ -18,6 +18,7 @@
  ***************************************************************************/
 """
 
+from gzip import FTEXT
 import math
 import sys
 import processing
@@ -84,11 +85,9 @@ class _ViewerPage(QWebPage):
 class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
     """Geo360 Dialog Class"""
 
-    def __init__(self, iface, parent=None, featuresId=None, layer=None, name_layer="", press_button=None):
+    def __init__(self, iface, parent=None, featuresId=None, layer=None, name_layer=""):
 
         QDockWidget.__init__(self)
-
-        # self.press_button = press_button
 
         self.useLayer = name_layer
 
@@ -164,6 +163,9 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         self.isWindowFullScreen = False
         self.normalWindowState = None
 
+        # Hotspot
+        self.slots.signal.connect(self.ClickHotspot)
+
     def __del__(self):
         self.resetQgsRubberBand()
 
@@ -185,7 +187,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         self.cef_widget.settings().setAttribute(QWebSettings.JavascriptEnabled, True)
         pano_view_settings = self.cef_widget.settings()
         pano_view_settings.setAttribute(QWebSettings.WebGLEnabled, True)
-        # pano_view_settings.setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
+        pano_view_settings.setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
         pano_view_settings.setAttribute(QWebSettings.Accelerated2dCanvasEnabled, True)
         pano_view_settings.setAttribute(QWebSettings.JavascriptEnabled, True)
 
@@ -254,11 +256,12 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         if nazwa_ulicy == "NULL":
             print(" nazwa ulicy null")
             file_metadata.write(
-                '<!DOCTYPE html>' + '\n' + '<html lang="pl">' + '\n' + '<head>' + '\n' + '   <meta charset="UTF-8">' + '\n' + '  <title>Photos metadata</title>' + '\n' + '</head>' + '\n' + '<body>' + '\n' + ' <div id="photo_data" style="position: absolute; top: 0; left: 0px; padding-top: 0px;width: 220px; max-height: 100%; overflow: hidden; margin-left: 0; background-color: rgba(58,68,84,0.8); color:white; font-family: inherit; line-height: 0.7;">' + '\n')
-            file_metadata.write('<p style="margin-left: 5px;">' + "<b>" + "Numer drogi: " + "</b>" + nr_drogi + "</p>")
+                '<!DOCTYPE html>' + '\n' + '<html lang="pl" style="width: 0px; height: 0px;">' + '\n' + '<head>' + '\n' + '   <meta charset="UTF-8">' + '\n' + '  <title>Photos metadata</title>' + '\n' + '</head>' + '\n' + '<body>' + '\n' + ' <div id="photo_data" style="position: absolute; top: 0; left: 0px; padding-top: 0px;width: 250px; max-height: 100%; overflow: hidden; margin-left: 0; background-color: rgba(58,68,84,0.8); color:white; font-family: inherit; line-height: 0.7;">' + '\n')
+            file_metadata.write('<p style="margin-left: 5px;">' + "<b>" + "Numer drogi: " + "</b>" + "</p>")
+            file_metadata.write('<p style="margin-left: 5px;">' + nr_drogi + "</p>")
         else:
             file_metadata.write(
-                '<!DOCTYPE html>' + '\n' + '<html lang="pl">' + '\n' + '<head>' + '\n' + '   <meta charset="UTF-8">' + '\n' + '  <title>Photos metadata</title>' + '\n' + '</head>' + '\n' + '<body>' + '\n' + ' <div id="photo_data" style="position: absolute; top: 0; left: 0px; padding-top: 0px;width: 220px; max-height: 100%; overflow: hidden; margin-left: 0; background-color: rgba(58,68,84,0.8); color:white; font-family: inherit; line-height: 0.7;">' + '\n')
+                '<!DOCTYPE html>' + '\n' + '<html lang="pl" style="width: 0px; height: 0px;">' + '\n' + '<head>' + '\n' + '   <meta charset="UTF-8">' + '\n' + '  <title>Photos metadata</title>' + '\n' + '</head>' + '\n' + '<body>' + '\n' + ' <div id="photo_data" style="position: absolute; top: 0; left: 0px; padding-top: 0px;width: 220px; max-height: 100%; overflow: hidden; margin-left: 0; background-color: rgba(58,68,84,0.8); color:white; font-family: inherit; line-height: 0.7;">' + '\n')
             file_metadata.write('<p style="margin-left: 5px;">' + "<b>" + "Numer drogi: " + "</b>" + nr_drogi + "</p>")
             file_metadata.write(
                 '<p style="margin-left: 5px;">' + "<b>" + "Nazwa ulicy: " + "</b>" + nazwa_ulicy + "</p>")
@@ -277,7 +280,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         features = self.layer.selectedFeatures()
         for feat in features:
-            x_punktu = feat.attributes()[5]
+            x_punktu = feat.attributes()[5] # z geometrii fead.geometry(aspoint
             y_punktu = feat.attributes()[6]
 
         selected_feature_2180 = processing.run("native:reprojectlayer", {
@@ -304,14 +307,20 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         for feat in self.layer.selectedFeatures():
             x = feat.attributes()[5]
             y = feat.attributes()[6]
+            azymut = feat.attributes()[4]
+            index_feature = feat.id()
+            print("index: ", index_feature)
+            azymut_metadane = str(azymut).replace(",",".")
+            print("azymut_metadane: ", azymut_metadane)
+
 
             centr = QgsPointXY(float(x), float(y))
             pkt = QgsPointXY(float(x_punktu), float(y_punktu))
+            azymut_obliczony = centr.azimuth(pkt)
+            print('azymut_obliczony: ', azymut_obliczony)
             
-            azymut = centr.azimuth(pkt)
-            print('azymut: ', azymut)
-            
-            list_of_attribute_list.append(x + ' ' + y + ' ' + str(azymut))
+            # list_of_attribute_list.append(x + ' ' + y + ' ' + str((180 * azymut) / 200) + ' ' + str(index_feature))
+            list_of_attribute_list.append(x + ' ' + y + ' ' + azymut_metadane + ' ' + str(index_feature) + ' ' + str(azymut_obliczony))
             self.layer.removeSelection()
 
         self.slots.setXYId(coordinates=list_of_attribute_list)
@@ -338,11 +347,99 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         """Change Url Viewer"""
         self.cef_widget.load(QUrl(new_url))
 
+    def ClickHotspot(self):
+
+        print("click hotspot")
+        coordinate_hotspot = self.slots.getHotSpotDetailsToPython()
+        print("coordinate_hotspot: ", coordinate_hotspot)
+        print('obsługa Sygnału')
+        print("layer: ", self.layer)
+        newId = int(coordinate_hotspot[2])
+
+
+        """Reaload Image viewer after click hotspot"""
+
+        self.cef_widget = QWebView()
+        self.cef_widget.setContextMenuPolicy(Qt.NoContextMenu)
+
+        self.cef_widget.settings().setAttribute(QWebSettings.JavascriptEnabled, True)
+        pano_view_settings = self.cef_widget.settings()
+        pano_view_settings.setAttribute(QWebSettings.WebGLEnabled, True)
+        pano_view_settings.setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
+        pano_view_settings.setAttribute(QWebSettings.Accelerated2dCanvasEnabled, True)
+        pano_view_settings.setAttribute(QWebSettings.JavascriptEnabled, True)
+
+        self.page = _ViewerPage()
+        self.page.newData.connect(self.onNewData)
+        self.cef_widget.setPage(self.page)
+
+        # """ połaczenie z javascriptem"""
+        self.slots = Slots()
+
+        # # self.slots.setXYId(x=123, y=456, id=987)    # push params to JS
+        self.cef_widget.page().mainFrame().addToJavaScriptWindowObject("pythonSlot", self.slots)
+
+        self.cef_widget.load(QUrl(self.DEFAULT_URL))
+        self.ViewerLayout.addWidget(self.cef_widget, 1, 0)
+
+
+        self.selected_features = qgsutils.getToFeature(self.layer, newId)
+        print("ReloadView Hotspot")
+
+        self.current_image = self.GetImage()
+
+        # Check if image exist
+        if os.path.exists(self.current_image) is False:
+            qgsutils.showUserAndLogMessage(
+                u"Information: ", u"There is no associated image."
+            )
+            self.ChangeUrlViewer(self.DEFAULT_EMPTY)
+            self.resetQgsRubberBand()
+            return
+
+        # Copy file to local server
+        self.CopyFile(self.current_image)
+
+        # Set RubberBand
+        self.resetQgsRubberBand()
+        self.setOrientation()
+        self.setPosition()
+
+        self.ChangeUrlViewer(self.DEFAULT_URL)
+
+        self.slots.signal.connect(self.ClickHotspot)
+
+
     def ReloadView(self, newId):
         """Reaload Image viewer"""
         self.setWindowState(self.windowState() & ~Qt.WindowMinimized | Qt.WindowActive)
         # this will activate the window
         self.activateWindow()
+
+        self.cef_widget = QWebView()
+        self.cef_widget.setContextMenuPolicy(Qt.NoContextMenu)
+
+        self.cef_widget.settings().setAttribute(QWebSettings.JavascriptEnabled, True)
+        pano_view_settings = self.cef_widget.settings()
+        pano_view_settings.setAttribute(QWebSettings.WebGLEnabled, True)
+        pano_view_settings.setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
+        pano_view_settings.setAttribute(QWebSettings.Accelerated2dCanvasEnabled, True)
+        pano_view_settings.setAttribute(QWebSettings.JavascriptEnabled, True)
+
+        self.page = _ViewerPage()
+        self.page.newData.connect(self.onNewData)
+        self.cef_widget.setPage(self.page)
+
+        # """ połaczenie z javascriptem"""
+        self.slots = Slots()
+
+        # # self.slots.setXYId(x=123, y=456, id=987)    # push params to JS
+        self.cef_widget.page().mainFrame().addToJavaScriptWindowObject("pythonSlot", self.slots)
+
+        self.cef_widget.load(QUrl(self.DEFAULT_URL))
+        self.ViewerLayout.addWidget(self.cef_widget, 1, 0)
+
+
         self.selected_features = qgsutils.getToFeature(self.layer, newId)
         print("ReloadView")
 
@@ -404,7 +501,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         print("image path after save: ", image_path)
         print("self.bearing: ", self.bearing)
 
-    def UpdateOrientation(self):
+    def UpdateOrientation(self, yaw=None):
         """Update Orientation"""
         self.bearing = self.selected_features.attribute(config.column_yaw)
         print("self.bearing: ", self.bearing)
@@ -494,7 +591,8 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         tmpGeom = self.actualPointOrientation.asGeometry()
 
         self.actualPointOrientation.setToGeometry(
-            self.rotateTool.rotate(tmpGeom, self.actualPointDx, angle), self.dumLayer
+            self.rotateTool.rotate(tmpGeom, self.actualPointDx, angle), self.dumLayer,
+            print("obraca się")
         )
 
     def setOrientation(self, yaw=None):

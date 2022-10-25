@@ -237,8 +237,7 @@ class Geo360:
     #     self.iface.removeToolBarIcon(self.action)
     #     # Close server
     #     self.close_server()
-    def test(self):
-        print('obsługa Sygnału')
+
 
     def unload(self):
         """Unload Geo360 tool"""
@@ -421,9 +420,9 @@ class Geo360:
                     features = vlayer.getFeatures()
                     for feature in features:
                         azymut_value = feature["azymut"]
-                        # print(str(azymut_value.value()))
-                        # print(type(str(azymut_value.value())))
-                        if str(azymut_value.value()) == "NULL":
+                        # print(str(azymut_value))
+                        # print(type(str(azymut_value)))
+                        if str(azymut_value) == "NULL":
                             vlayer.dataProvider().changeAttributeValues(
                                 {feature.id(): {vlayer.dataProvider().fieldNameMap()['azymut']: 310}})
                         else:
@@ -658,7 +657,8 @@ class Geo360:
         gpkg_path = os.path.join(self.dlg.mQgsFileWidget_search_gpkg.filePath())
         if not self.checkSavePath(gpkg_path):
             return False
-        gpkg_name = os.path.splitext(gpkg_path)[0]
+        # gpkg_name = os.path.splitext(gpkg_path)[0]
+        gpkg_name = Path(gpkg_path).stem
         # gpkg_name = gpkg_path.split('\\')[-1].split('.')[0]
         print("ppp-gpkg_name: ", gpkg_name)
 
@@ -684,7 +684,13 @@ class Geo360:
         """Run dialog Geo360"""
         self.featuresId = featuresId
         self.layer = layer
+        print("featuresId: ", type(featuresId))
+        print("layer: ", type(layer))
         print("ShowViewer")
+        print("self.useLayer: ", self.useLayer)
+        print("self.layer: ", self.layer)
+        print("featuresId: ", featuresId)
+        
         if self.orbitalViewer and not self.is_press_button:
             self.orbitalViewer.ReloadView(self.featuresId)
             print("ShowViewer orbitalViewer is NOT None")
@@ -694,13 +700,9 @@ class Geo360:
                 self.canvas.refresh()
                 print("ShowViewer button was pressed")
             self.orbitalViewer = Geo360Dialog(
-                self.iface, parent=self, featuresId=featuresId, layer=self.layer, name_layer=self.useLayer,
-                press_button=self.is_press_button
+                self.iface, parent=self, featuresId=featuresId, layer=self.layer, name_layer=self.useLayer
             )
             self.iface.addDockWidget(Qt.BottomDockWidgetArea, self.orbitalViewer)
-            self.orbitalViewer.slots.signal.connect(self.test)
-        coordinate_hotspot = self.orbitalViewer.slots.getHotSpotDetailsToPython()
-        print("coordinate_hotspot: ", coordinate_hotspot)
 
     def checkSavePath(self, path):
         """Sprawdza czy ścieżka jest poprawna i zwraca Boolean"""
@@ -712,7 +714,6 @@ class Geo360:
             return False
         else:
             return True
-
 
 class SelectTool(QgsMapToolIdentify):
     """Select Photo on map"""

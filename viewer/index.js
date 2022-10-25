@@ -43,19 +43,21 @@ view.addEventListener('change', viewChangeHandler);
 const positions =[]
 const coord_x =[]
 const coord_y =[]
+const index_list = []
 
 let data_coord = pythonSlot.getPhotoDetails();
 //alert(data_coord.toString());
-//$('#coord').text(data_coord.toString());
+// $('#coord').text(data_coord.toString());
 
 var aLines = data_coord.toString().split(",")
 aLines.forEach(function(element){
 // $('#coord').text(coord_end);
     var coord = element.split(" ")
-//    $('#coord').text(coord[0]);
-    if (coord[2] === '0.0'){
+  //  $('#coord').text(coord[0]);
+    if (coord[4] === '0.0'){
       var x = parseFloat(coord[0])
       var y = parseFloat(coord[1])
+      var az = parseFloat(coord[2])
 //      $('#coord').text(aLines);
       for (let i=0; i<(aLines.length); i++){
 //         $('#coord').text(aLines[i]);
@@ -64,14 +66,21 @@ aLines.forEach(function(element){
 //        var coord_end = coord_substr.replace("'","").replace("]","")
         var coord = aLines[i].split(" ")
 //         $('#coord').text('coord: '+coord);
-          if (coord[2]!='0.0'){
+          if (coord[4]!='0.0'){
             // $('#coord').text('coord: '+coord);
             var x1 = parseFloat(coord[0])
             coord_x.push(x1)
             var y1 = parseFloat(coord[1])
             coord_y.push(y1)
-            var az = 295
-            var position = (Math.PI/180)*az-(Math.atan2(x-x1,y-y1))
+            var index = coord[3]
+            index_list.push(index)
+            // var az = 295
+            // var az = parseFloat(coord[2])
+            // $('#coord').text('index= '+ index );
+            var position = (Math.PI/180)*az-(Math.atan2(x1-x,y1-y))
+
+            // var position = (Math.atan2(x1-x,y1-y))
+            // alert('position= ' + position + " index: " +index );
             // $('#coord').text('x1= '+x1+'x= '+x+'position: '+position);
             positions.push(position)
           }
@@ -91,12 +100,13 @@ for (let i=0; i<list.length; i++) {
   /*
   pythonSlot - obiekt js umożliwiający komunikację z pythonem
   */
-//      let a = pythonSlot.getPhotoDetails();
-//      alert(a.toString());
-  pythonSlot.showMessage('Hello from WebKit');
-  pythonSlot.setXYtoPython(coord_x[i], coord_y[i], True)
+    //  let a = pythonSlot.getPhotoDetails();
+    //  alert(a.toString());
+  // pythonSlot.showMessage('Hello from WebKit');
+  pythonSlot.setXYtoPython(coord_x[i], coord_y[i], index_list[i]);
 
-  $('#coord').text('x= ' + coord_x[i]+', y= '+coord_y[i]);
+  // alert('x= ' + coord_x[i]+', y= '+coord_y[i] + ', index = ' + index_list[i]);
+  // $('#coord').text('x= ' + coord_x[i]+', y= '+coord_y[i] + ', index = ' + index_list[i]);
   var coord = document.getElementById('coord');
   coord.innerHTML += toString(x+","+y)
 });
