@@ -121,6 +121,7 @@ body.view-control-buttons .viewControlButton {
 
 #info-photo {
   position: absolute;
+  pointer-events: none;
 }
 
 .hotspot {

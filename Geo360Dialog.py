@@ -78,8 +78,12 @@ class _ViewerPage(QWebPage):
 
     def javaScriptConsoleMessage(self, msg, line, source):
         l = msg.split(",")
-        self.obj = l
-        self.newData.emit(l)
+        # print(msg)
+        if 'yaw' in l[0]:
+            # print(l[0])
+            # print(l)
+            self.obj = l
+            self.newData.emit(l)
 
 
 class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
@@ -171,7 +175,8 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
     def onNewData(self, data):
         try:
-            newYaw = float(data[0])
+            print(data[0].replace("yaw=",""))
+            newYaw = float(data[0].replace("yaw=",""))
             self.UpdateOrientation(yaw=newYaw)
         except:
             None
@@ -472,6 +477,8 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         self.ChangeUrlViewer(self.DEFAULT_URL)
 
+        self.slots.signal.connect(self.ClickHotspot)
+
     def FullScreen(self):
         if not self.isWindowFullScreen:
             self.setFloating(True)
@@ -507,7 +514,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         print("self.bearing: ", self.bearing)
         try:
             self.actualPointOrientation.reset()
-            # print("actualPointOrientation update orientation reset")
+            print("actualPointOrientation update orientation reset")
         except Exception:
             print("actualPointOrientation update orientation")
             pass
@@ -585,6 +592,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         # Vision Angle
         if yaw is not None:
             angle = float(self.bearing + yaw) * math.pi / -180
+            print("angle: ", angle)
         else:
             angle = float(self.bearing) * math.pi / -180
 
