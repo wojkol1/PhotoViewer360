@@ -149,4 +149,5 @@ body.view-control-buttons .viewControlButton {
   width: 60px;
   height: 100%;
   cursor: pointer;
+  opacity: 0.9;
 }
