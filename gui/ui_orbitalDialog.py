@@ -12,6 +12,7 @@ from .. import plugin_dir
 from qgis.gui import QgsFileWidget
 
 class Ui_orbitalDialog(object):
+    signal_return_to_click = QtCore.pyqtSignal()
     def setupUi(self, orbitalDialog):
         orbitalDialog.setObjectName("orbitalDialog")
         orbitalDialog.resize(563, 375)
@@ -58,12 +59,27 @@ class Ui_orbitalDialog(object):
         # self.QgsFileWidget_save_img.setObjectName("QgsFileWidget_save_img")
         # self.horizontalLayout.addWidget(self.QgsFileWidget_save_img)
 
+        self.btn_view_finder = QtWidgets.QPushButton(self.dockWidgetContents)
+        self.btn_view_finder.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.btn_view_finder.setText("")
+        icon4 = QtGui.QIcon()
+        icon4.addPixmap(
+            QtGui.QPixmap(plugin_dir + "/images/viewfinder.svg"),
+            QtGui.QIcon.Normal,
+            QtGui.QIcon.Off,
+        )
+        self.btn_view_finder.setIcon(icon4)
+        self.btn_view_finder.setCheckable(True)
+        self.btn_view_finder.setObjectName("btn_view_finder")
+        self.horizontalLayout.addWidget(self.btn_view_finder)
+
+
         self.btn_screenshot = QtWidgets.QPushButton(self.dockWidgetContents)
         self.btn_screenshot.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.btn_screenshot.setText("")
         icon1 = QtGui.QIcon()
         icon1.addPixmap(
-            QtGui.QPixmap(plugin_dir + "/images/camera.png"),
+            QtGui.QPixmap(plugin_dir + "/images/camera.svg"),
             QtGui.QIcon.Normal,
             QtGui.QIcon.Off,
         )
@@ -81,7 +97,7 @@ class Ui_orbitalDialog(object):
         self.btn_fullscreen.setText("")
         icon3 = QtGui.QIcon()
         icon3.addPixmap(
-            QtGui.QPixmap(plugin_dir + "/images/full_screen.png"),
+            QtGui.QPixmap(plugin_dir + "/images/full_screen.svg"),
             QtGui.QIcon.Normal,
             QtGui.QIcon.Off,
         )
@@ -89,6 +105,7 @@ class Ui_orbitalDialog(object):
         self.btn_fullscreen.setCheckable(True)
         self.btn_fullscreen.setObjectName("btn_fullscreen")
         self.horizontalLayout.addWidget(self.btn_fullscreen)
+
 
         spacerItem1 = QtWidgets.QSpacerItem(
             5, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum
@@ -101,6 +118,8 @@ class Ui_orbitalDialog(object):
         self.retranslateUi(orbitalDialog)
         self.btn_fullscreen.clicked["bool"].connect(orbitalDialog.FullScreen)
         self.btn_screenshot.clicked.connect(orbitalDialog.GetScreenShot)
+        # self.btn_view_finder.clicked.connect(self.ReturnToClick)
+        # self.btn_view_finder.clicked.connect(self.signal_return_to_click.emit())
         QtCore.QMetaObject.connectSlotsByName(orbitalDialog)
 
     def retranslateUi(self, orbitalDialog):
@@ -109,3 +128,6 @@ class Ui_orbitalDialog(object):
             _translate("orbitalDialog", "PhotoViewer360")
         )
         # self.label.setText(_translate("main", "Wybierz ściężkę zapisu zrzutu widoku: "))
+
+    # def ReturnToClick(self):
+    #     self.signal_return_to_click.emit()
