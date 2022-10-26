@@ -457,6 +457,9 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         pixmap.save(image_path)
         print("image path after save: ", image_path)
         print("self.bearing: ", self.bearing)
+    
+    # def ReturnToClick(self):
+    #     print("ReturnToClick")
 
     def UpdateOrientation(self, yaw=None):
         """Update Orientation"""

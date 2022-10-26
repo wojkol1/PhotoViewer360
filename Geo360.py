@@ -20,7 +20,7 @@
 import shutil
 
 from qgis.gui import QgsMapToolIdentify
-from qgis.PyQt.QtCore import Qt, QSettings, QThread, QVariant
+from qgis.PyQt.QtCore import Qt, QSettings, QThread, QVariant, pyqtSignal
 from qgis.PyQt.QtGui import QIcon, QCursor, QPixmap
 from qgis.PyQt.QtWidgets import QAction, QMessageBox, QProgressBar
 
@@ -54,6 +54,7 @@ from qgis.gui import QgsRubberBand
 from PIL import Image, ExifTags
 import exifread
 from .slots import Slots
+# from PhotoViewer360.gui.ui_orbitalDialog import Ui_orbitalDialog
 
 try:
     from pydevd import *
@@ -90,6 +91,8 @@ class Geo360:
         self.settings = QgsSettings()
         self.useLayer = ""
         self.is_press_button = False
+        # self.ui_orbitalDialog = Ui_orbitalDialog()
+
 
         # self.actualPointOrientation = QgsRubberBand(
         #     self.iface.mapCanvas(), QgsWkbTypes.LineGeometry
@@ -229,6 +232,7 @@ class Geo360:
         self.dlg.mapLayerComboBox.setFilters(QgsMapLayerProxyModel.PointLayer)
         self.dlg.mapLayerComboBox.setShowCrs(True)
 
+        # self.ui_orbitalDialog.signal_return_to_click.connect(self.ReturnToClick)
 
 
     # def unload(self):
@@ -310,6 +314,9 @@ class Geo360:
                 self.canvas.setExtent(xform.transform(layer.extent()))
                 self.canvas.refresh()
                 print("self.useLayer: ", self.useLayer)
+
+    # def ReturnToClick(self):
+    #     print("ReturnToClick")
 
     def fromLayer_btn_clicked(self):
         self.is_press_button = True
