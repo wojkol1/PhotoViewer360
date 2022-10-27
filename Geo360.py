@@ -20,7 +20,7 @@
 import shutil
 
 from qgis.gui import QgsMapToolIdentify
-from qgis.PyQt.QtCore import Qt, QSettings, QThread, QVariant
+from qgis.PyQt.QtCore import Qt, QSettings, QThread, QVariant, QCoreApplication
 from qgis.PyQt.QtGui import QIcon, QCursor, QPixmap
 from qgis.PyQt.QtWidgets import QAction, QMessageBox, QProgressBar
 
@@ -41,7 +41,7 @@ from pathlib import Path
 from PyQt5.QtWidgets import QFileDialog
 # from qgis.core import QgsVectorLayer
 from qgis.core import *
-from qgis.PyQt.QtWidgets import QDialog
+from qgis.PyQt.QtWidgets import QDialog, QToolBar
 from PyQt5 import QtWidgets
 import sys
 from qgis.gui import QgsFileWidget, QgsMessageBar
@@ -91,6 +91,16 @@ class Geo360:
         self.useLayer = ""
         self.is_press_button = False
 
+        # Declare instance attributes
+        self.actions = []
+        self.menu = self.tr(u'&PhotoViewer360')
+
+        # toolbar
+        self.toolbar = self.iface.mainWindow().findChild(QToolBar, 'PhotoViewer360')
+        if not self.toolbar:
+            self.toolbar = self.iface.addToolBar(u'PhotoViewer360')
+            self.toolbar.setObjectName(u'PhotoViewer360')
+
         # self.actualPointOrientation = QgsRubberBand(
         #     self.iface.mapCanvas(), QgsWkbTypes.LineGeometry
         # )
@@ -103,6 +113,22 @@ class Geo360:
         # self.positionSx = QgsRubberBand(
         #     self.iface.mapCanvas(), QgsWkbTypes.PointGeometry
         # )
+
+        # noinspection PyMethodMayBeStatic
+    def tr(self, message):
+        """Get the translation for a string using Qt translation API.
+
+        We implement this ourselves since we do not inherit QObject.
+
+        :param message: String for translation.
+        :type message: str, QString
+
+        :returns: Translated version of message.
+        :rtype: QString
+        """
+        # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
+        return QCoreApplication.translate('PhotoViewer360', message)
+
 
     def add_action(
             self,
@@ -165,15 +191,15 @@ class Geo360:
         if whats_this is not None:
             action.setWhatsThis(whats_this)
 
-        # if add_to_toolbar:
-        #     # Adds plugin icon to Plugins toolbar
-        #     # self.iface.addToolBarIcon(action)
-        #     self.toolbar.addAction(action)
-        #
-        # if add_to_menu:
-        #     self.iface.addPluginToMenu(
-        #         self.menu,
-        #         action)
+        if add_to_toolbar:
+            # Adds plugin icon to Plugins toolbar
+            # self.iface.addToolBarIcon(action)
+            self.toolbar.addAction(action)
+        
+        if add_to_menu:
+            self.iface.addPluginToMenu(
+                self.menu,
+                action)
 
         self.actions.append(action)
 
@@ -190,20 +216,21 @@ class Geo360:
             parent=self.iface.mainWindow())
 
         self.action_activate= self.add_action(
-            icon_path=QIcon(plugin_dir + "/images/viewfinder.svg"),
+            icon_path=QIcon(plugin_dir + "/images/target.png"),
             text=u"PhotoViewer360 aktywacja",
             callback=self.activate,
-            parent=self.iface.mainWindow())
+            parent=self.iface.mainWindow(),
+            enabled_flag = True)
 
         # will be set False in run()
         self.first_start = True
 
         self.action.triggered.connect(self.run)
-        self.iface.addToolBarIcon(self.action)
+        # self.iface.addToolBarIcon(self.action)
         self.iface.addPluginToMenu(u"&PhotoViewer360", self.action)
 
         self.action_activate.triggered.connect(self.activate)
-        self.iface.addToolBarIcon(self.action_activate)
+        # self.iface.addToolBarIcon(self.action_activate)
         self.iface.addPluginToMenu(u"&PhotoViewer360", self.action_activate)
 
         # # informacje o wersji
@@ -239,7 +266,6 @@ class Geo360:
         self.dlg.mapLayerComboBox.setFilters(QgsMapLayerProxyModel.PointLayer)
         self.dlg.mapLayerComboBox.setShowCrs(True)
 
-
     # def unload(self):
     #     """Unload Geo360 tool"""
     #     self.iface.removePluginMenu(u"&PhotoViewer360", self.action)
@@ -250,11 +276,21 @@ class Geo360:
 
     def unload(self):
         """Unload Geo360 tool"""
+        # for action in self.actions:
+        #     self.iface.removePluginMenu(u"&PhotoViewer360", action)
+        #     self.iface.removeToolBarIcon(action)
+        #     # Close server
+        #     self.close_server()
+
         for action in self.actions:
-            self.iface.removePluginMenu(u"&PhotoViewer360", action)
+            self.iface.removePluginMenu(
+                u'&PhotoViewer360',
+                action)
             self.iface.removeToolBarIcon(action)
-            # Close server
+            self.toolbar.removeAction(action)
             self.close_server()
+        # remove the toolbar
+        del self.toolbar
 
     # def is_running(self):
     #     return self.server_thread and self.server_thread.is_alive()
@@ -309,6 +345,13 @@ class Geo360:
             # print("v: ", layer)
             # print("v.name(): ", layer.name())
             if layer.name() == self.useLayer:
+                # try:
+                #     # self.iface.messageBar().pushMessage("Informacja", "Korzystasz z warstwy: " + self.useLayer, level=Qgis.Info, duration=-1)
+                #     self.mapTool = SelectTool(self.iface, parent=self, layer=layer)
+                #     self.iface.mapCanvas().setMapTool(self.mapTool)
+                # except IndexError or TypeError or RuntimeError:
+                #     self.iface.messageBar().pushMessage("UWAGA", "Brak wczytanej warstwy. Wybierz dane w głównej części wtyczki", level=Qgis.Critical)
+
                 self.mapTool = SelectTool(self.iface, parent=self, layer=layer)
                 self.iface.mapCanvas().setMapTool(self.mapTool)
 
@@ -319,17 +362,22 @@ class Geo360:
                 self.canvas.refresh()
                 print("self.useLayer: ", self.useLayer)
 
+            
+
     def activate(self):
         print("activate")
         print(self.useLayer)
         layer = self.dlg.mapLayerComboBox.currentText()
+        # layer = QgsProject.instance().mapLayersByName(layer.split(' ')[0])[0]
+        # self.iface.messageBar().pushMessage("Informacja", "Korzystasz z warstwy: " + self.useLayer, level=Qgis.Info, duration=-1)
+        # self.click_feature()
         try:
             layer = QgsProject.instance().mapLayersByName(layer.split(' ')[0])[0]
-            # self.iface.messageBar().pushMessage("Informacja", "Korzystasz z warstwy: " + layer.name(), level=Qgis.Info, duration=-1)
+            self.iface.messageBar().pushMessage("Informacja", "Korzystasz z warstwy: " + self.useLayer, level=Qgis.Info, duration=-1)
             self.mapTool = SelectTool(self.iface, parent=self, layer=layer)
             self.iface.mapCanvas().setMapTool(self.mapTool)
             self.click_feature()
-        except IndexError:
+        except IndexError or TypeError or RuntimeError:
             self.iface.messageBar().pushMessage("UWAGA", "Brak wczytanej warstwy. Wybierz dane w głównej części wtyczki", level=Qgis.Critical)
 
 
@@ -726,6 +774,35 @@ class Geo360:
                 self.iface, parent=self, featuresId=featuresId, layer=self.layer, name_layer=self.useLayer
             )
             self.iface.addDockWidget(Qt.BottomDockWidgetArea, self.orbitalViewer)
+    #         QgsProject.instance().layerRemoved.connect(self.layerRemoved)
+
+
+    # def layerRemoved(self):
+    #     print("w funkcji layer Removed")
+    #     print(self.useLayer)
+    #     lys = QgsProject.instance().mapLayers().values()
+    #     for one_layer in lys:
+    #         # print("v: ", one_layer)
+    #         # print("v.name(): ", one_layer.name())
+    #         if one_layer.name() != self.useLayer:
+    #             self.iface.removePluginMenu(
+    #                 u'&PhotoViewer360',
+    #                 self.action_activate)
+    #             self.iface.removeToolBarIcon(self.action_activate)
+    #             # self.toolbar = self.iface.mainWindow().findChild(QToolBar, 'PhotoViewer360')
+    #             # self.toolbar.removeAction(self.action_activate)
+
+    #             # del self.toolbar
+                
+    #             self.action_activate= self.add_action(
+    #                 icon_path=QIcon(plugin_dir + "/images/target.png"),
+    #                 text=u"PhotoViewer360 aktywacja",
+    #                 callback=self.activate,
+    #                 parent=self.iface.mainWindow(),
+    #                 enabled_flag = False)
+    #             self.action_activate.triggered.connect(self.activate)
+    #             self.iface.addToolBarIcon(self.action_activate)
+    #             self.iface.addPluginToMenu(u"&PhotoViewer360", self.action_activate)
 
     def checkSavePath(self, path):
         """Sprawdza czy ścieżka jest poprawna i zwraca Boolean"""

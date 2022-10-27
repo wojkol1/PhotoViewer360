@@ -58,8 +58,10 @@ from qgis.PyQt.QtWebKitWidgets import QWebView, QWebPage
 from qgis.PyQt.QtWebKit import QWebSettings
 from PyQt5.QtPrintSupport import QPrinter
 from PyQt5.QtCore import QDate, QDateTime
+from PyQt5 import QtCore, QtWidgets
 
 from .slots import Slots
+import msvcrt
 
 try:
     from pydevd import *
@@ -84,6 +86,7 @@ class _ViewerPage(QWebPage):
             # print(l)
             self.obj = l
             self.newData.emit(l)
+
 
 class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
     """Geo360 Dialog Class"""
@@ -171,7 +174,6 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         
         # self.old_bearing = None
         
-
     def __del__(self):
         self.resetQgsRubberBand()
 
@@ -461,6 +463,8 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         pixmap = self.cef_widget.grab()
         pixmap.save(image_path)
+        image = Image.open(image_path)
+        image.show()
         print("image path after save: ", image_path)
         print("self.bearing: ", self.bearing)
 
