@@ -11,8 +11,9 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from .. import plugin_dir
 from qgis.gui import QgsFileWidget
 
+
 class Ui_orbitalDialog(object):
-    signal_return_to_click = QtCore.pyqtSignal()
+    
     def setupUi(self, orbitalDialog):
         orbitalDialog.setObjectName("orbitalDialog")
         orbitalDialog.resize(563, 375)
@@ -59,20 +60,6 @@ class Ui_orbitalDialog(object):
         # self.QgsFileWidget_save_img.setObjectName("QgsFileWidget_save_img")
         # self.horizontalLayout.addWidget(self.QgsFileWidget_save_img)
 
-        self.btn_view_finder = QtWidgets.QPushButton(self.dockWidgetContents)
-        self.btn_view_finder.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.btn_view_finder.setText("")
-        icon4 = QtGui.QIcon()
-        icon4.addPixmap(
-            QtGui.QPixmap(plugin_dir + "/images/viewfinder.svg"),
-            QtGui.QIcon.Normal,
-            QtGui.QIcon.Off,
-        )
-        self.btn_view_finder.setIcon(icon4)
-        self.btn_view_finder.setCheckable(True)
-        self.btn_view_finder.setObjectName("btn_view_finder")
-        self.horizontalLayout.addWidget(self.btn_view_finder)
-
 
         self.btn_screenshot = QtWidgets.QPushButton(self.dockWidgetContents)
         self.btn_screenshot.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
@@ -118,8 +105,6 @@ class Ui_orbitalDialog(object):
         self.retranslateUi(orbitalDialog)
         self.btn_fullscreen.clicked["bool"].connect(orbitalDialog.FullScreen)
         self.btn_screenshot.clicked.connect(orbitalDialog.GetScreenShot)
-        # self.btn_view_finder.clicked.connect(self.ReturnToClick)
-        # self.btn_view_finder.clicked.connect(self.signal_return_to_click.emit())
         QtCore.QMetaObject.connectSlotsByName(orbitalDialog)
 
     def retranslateUi(self, orbitalDialog):
@@ -128,6 +113,3 @@ class Ui_orbitalDialog(object):
             _translate("orbitalDialog", "PhotoViewer360")
         )
         # self.label.setText(_translate("main", "Wybierz ściężkę zapisu zrzutu widoku: "))
-
-    # def ReturnToClick(self):
-    #     self.signal_return_to_click.emit()

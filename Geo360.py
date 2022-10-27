@@ -20,7 +20,7 @@
 import shutil
 
 from qgis.gui import QgsMapToolIdentify
-from qgis.PyQt.QtCore import Qt, QSettings, QThread, QVariant, pyqtSignal
+from qgis.PyQt.QtCore import Qt, QSettings, QThread, QVariant
 from qgis.PyQt.QtGui import QIcon, QCursor, QPixmap
 from qgis.PyQt.QtWidgets import QAction, QMessageBox, QProgressBar
 
@@ -44,7 +44,7 @@ from qgis.core import *
 from qgis.PyQt.QtWidgets import QDialog
 from PyQt5 import QtWidgets
 import sys
-from qgis.gui import QgsFileWidget
+from qgis.gui import QgsFileWidget, QgsMessageBar
 from qgis.core import (
     QgsWkbTypes,
 )
@@ -54,7 +54,6 @@ from qgis.gui import QgsRubberBand
 from PIL import Image, ExifTags
 import exifread
 from .slots import Slots
-# from PhotoViewer360.gui.ui_orbitalDialog import Ui_orbitalDialog
 
 try:
     from pydevd import *
@@ -91,8 +90,6 @@ class Geo360:
         self.settings = QgsSettings()
         self.useLayer = ""
         self.is_press_button = False
-        # self.ui_orbitalDialog = Ui_orbitalDialog()
-
 
         # self.actualPointOrientation = QgsRubberBand(
         #     self.iface.mapCanvas(), QgsWkbTypes.LineGeometry
@@ -192,12 +189,22 @@ class Geo360:
             callback=self.run,
             parent=self.iface.mainWindow())
 
+        self.action_activate= self.add_action(
+            icon_path=QIcon(plugin_dir + "/images/viewfinder.svg"),
+            text=u"PhotoViewer360 aktywacja",
+            callback=self.activate,
+            parent=self.iface.mainWindow())
+
         # will be set False in run()
         self.first_start = True
 
         self.action.triggered.connect(self.run)
         self.iface.addToolBarIcon(self.action)
         self.iface.addPluginToMenu(u"&PhotoViewer360", self.action)
+
+        self.action_activate.triggered.connect(self.activate)
+        self.iface.addToolBarIcon(self.action_activate)
+        self.iface.addPluginToMenu(u"&PhotoViewer360", self.action_activate)
 
         # # informacje o wersji
         # self.dlg.setWindowTitle('%s %s' % (plugin_name, plugin_version))
@@ -231,8 +238,6 @@ class Geo360:
 
         self.dlg.mapLayerComboBox.setFilters(QgsMapLayerProxyModel.PointLayer)
         self.dlg.mapLayerComboBox.setShowCrs(True)
-
-        # self.ui_orbitalDialog.signal_return_to_click.connect(self.ReturnToClick)
 
 
     # def unload(self):
@@ -295,7 +300,6 @@ class Geo360:
         self.dlg.show()
 
 
-
     def click_feature(self):
         """Run click feature"""
 
@@ -315,8 +319,20 @@ class Geo360:
                 self.canvas.refresh()
                 print("self.useLayer: ", self.useLayer)
 
-    # def ReturnToClick(self):
-    #     print("ReturnToClick")
+    def activate(self):
+        print("activate")
+        print(self.useLayer)
+        layer = self.dlg.mapLayerComboBox.currentText()
+        try:
+            layer = QgsProject.instance().mapLayersByName(layer.split(' ')[0])[0]
+            # self.iface.messageBar().pushMessage("Informacja", "Korzystasz z warstwy: " + layer.name(), level=Qgis.Info, duration=-1)
+            self.mapTool = SelectTool(self.iface, parent=self, layer=layer)
+            self.iface.mapCanvas().setMapTool(self.mapTool)
+            self.click_feature()
+        except IndexError:
+            self.iface.messageBar().pushMessage("UWAGA", "Brak wczytanej warstwy. Wybierz dane w głównej części wtyczki", level=Qgis.Critical)
+
+
 
     def fromLayer_btn_clicked(self):
         self.is_press_button = True
@@ -459,7 +475,7 @@ class Geo360:
                                 {feature.id(): {
                                     vlayer.dataProvider().fieldNameMap()['data_wykonania']: str(self.dataTime)}})
                             sciezka_zdjecie_open.close()
-                    # pokombinować z bardziej wydajnym/optymalnym sposobem
+
         vlayer.commitChanges()
         return vlayer
 

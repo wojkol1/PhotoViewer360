@@ -2,12 +2,11 @@
 /***************************************************************************
  PhotoViewer360
                                  A QGIS plugin
- QGIS Plugin for importing and visualising local panoramic images. 
+ Show local equirectangular images.
                              -------------------
-        begin                : 2022-10-28
-        copyright            : (C) 2022 EnviroSolutions Sp. z o.o.
-        email                : office@envirosolutions.pl
-        based on:            : EquirectangularViewer
+        begin                : 2017-02-17
+        copyright            : (C) 2016 All4Gis.
+        email                : franka1986@gmail.com
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -85,7 +84,6 @@ class _ViewerPage(QWebPage):
             # print(l)
             self.obj = l
             self.newData.emit(l)
-
 
 class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
     """Geo360 Dialog Class"""
@@ -170,6 +168,9 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         # Hotspot
         self.slots.signal.connect(self.ClickHotspot)
+        
+        # self.old_bearing = None
+        
 
     def __del__(self):
         self.resetQgsRubberBand()
@@ -262,12 +263,12 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         if nazwa_ulicy == "NULL":
             print(" nazwa ulicy null")
             file_metadata.write(
-                '<!DOCTYPE html>' + '\n' + '<html lang="pl" style="width: 0px; height: 0px;">' + '\n' + '<head>' + '\n' + '   <meta charset="UTF-8">' + '\n' + '  <title>Photos metadata</title>' + '\n' + '</head>' + '\n' + '<body>' + '\n' + ' <div id="photo_data" style="position: absolute; top: 0; left: 0px; padding-top: 0px;width: 250px; max-height: 100%; overflow: hidden; margin-left: 0; background-color: rgba(58,68,84,0.8); color:white; font-family: Calibri; font-size: 12pt; line-height: 0.7;">' + '\n')
+                '<!DOCTYPE html>' + '\n' + '<html lang="pl">' + '\n' + '<head>' + '\n' + '   <meta charset="UTF-8">' + '\n' + '  <title>Photos metadata</title>' + '\n' + '</head>' + '\n' + '<body>' + '\n' + ' <div id="photo_data" style="position: absolute; top: 0; left: 0px; padding-top: 0px;width: 250px; max-height: 100%; overflow: hidden; margin-left: 0; background-color: rgba(58,68,84,0.8); color:white; font-family: inherit; line-height: 0.7;">' + '\n')
             file_metadata.write('<p style="margin-left: 5px;">' + "<b>" + "Numer drogi: " + "</b>" + "</p>")
             file_metadata.write('<p style="margin-left: 5px;">' + nr_drogi + "</p>")
         else:
             file_metadata.write(
-                '<!DOCTYPE html>' + '\n' + '<html lang="pl" style="width: 0px; height: 0px;">' + '\n' + '<head>' + '\n' + '   <meta charset="UTF-8">' + '\n' + '  <title>Photos metadata</title>' + '\n' + '</head>' + '\n' + '<body>' + '\n' + ' <div id="photo_data" style="position: absolute; top: 0; left: 0px; padding-top: 0px;width: 220px; max-height: 100%; overflow: hidden; margin-left: 0; background-color: rgba(58,68,84,0.8); color:white; font-family: Calibri; font-size: 12pt; line-height: 0.7;">' + '\n')
+                '<!DOCTYPE html>' + '\n' + '<html lang="pl">' + '\n' + '<head>' + '\n' + '   <meta charset="UTF-8">' + '\n' + '  <title>Photos metadata</title>' + '\n' + '</head>' + '\n' + '<body>' + '\n' + ' <div id="photo_data" style="position: absolute; top: 0; left: 0px; padding-top: 0px;width: 220px; max-height: 100%; overflow: hidden; margin-left: 0; background-color: rgba(58,68,84,0.8); color:white; font-family: inherit; line-height: 0.7;">' + '\n')
             file_metadata.write('<p style="margin-left: 5px;">' + "<b>" + "Numer drogi: " + "</b>" + nr_drogi + "</p>")
             file_metadata.write(
                 '<p style="margin-left: 5px;">' + "<b>" + "Nazwa ulicy: " + "</b>" + nazwa_ulicy + "</p>")
@@ -326,7 +327,11 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
             print('azymut_obliczony: ', azymut_obliczony)
             
             # list_of_attribute_list.append(x + ' ' + y + ' ' + str((180 * azymut) / 200) + ' ' + str(index_feature))
+            # try:
+            #     list_of_attribute_list.append(x + ' ' + y + ' ' + str(self.old_bearing) + ' ' + str(index_feature) + ' ' + str(azymut_obliczony))
+            # except AttributeError:
             list_of_attribute_list.append(x + ' ' + y + ' ' + azymut_metadane + ' ' + str(index_feature) + ' ' + str(azymut_obliczony))
+
             self.layer.removeSelection()
 
         self.slots.setXYId(coordinates=list_of_attribute_list)
@@ -458,9 +463,6 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         pixmap.save(image_path)
         print("image path after save: ", image_path)
         print("self.bearing: ", self.bearing)
-    
-    # def ReturnToClick(self):
-    #     print("ReturnToClick")
 
     def UpdateOrientation(self, yaw=None):
         """Update Orientation"""
@@ -554,17 +556,18 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         # Vision Angle
         if yaw is not None:
-            angle = float(self.bearing + yaw) * math.pi / -180
-            print("angle: ", angle)
+            # if self.old_bearing is not None:
+            #     angle = float(self.old_bearing  + yaw) * math.pi / -180
+            # else:
+            #     angle = float(self.bearing  + yaw) * math.pi / -180
+
+            # self.old_bearing = self.bearing + yaw
+            # print("angle: ", angle)
+
+            angle = float(self.bearing  + yaw) * math.pi / -180
         else:
             angle = float(self.bearing) * math.pi / -180
 
-        # tmpGeom = self.actualPointOrientation.asGeometry()
-
-        # self.actualPointOrientation.setToGeometry(
-        #     self.rotateTool.rotate(tmpGeom, self.actualPointDx, angle), self.dumLayer,
-        #     print("obraca się")
-        # )
 
         tmpGeom = self.actualPointOrientation.asGeometry()
 
