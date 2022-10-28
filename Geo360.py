@@ -433,15 +433,6 @@ class Geo360:
         except:
             print("Tool Import Geotagged Photos failed!")
 
-        # gpkg_temporary = processing.run("native:reprojectlayer", {
-        #     'INPUT': list(gpkg_temporary.values())[0],
-        #     'TARGET_CRS':QgsCoordinateReferenceSystem('EPSG:2180'),
-        #     'OPERATION':'+proj=pipeline +step +proj=unitconvert +xy_in=deg +xy_out=rad +step +proj=tmerc +lat_0=0 +lon_0=19 +k=0.9993 +x_0=500000 +y_0=-5300000 +ellps=GRS80',
-        #     'OUTPUT':gpkg_path})
-
-        # print("reprojectlayer")
-
-
         gpkg_name = Path(gpkg_path).stem
         # gpkg_name = gpkg_path.split('\\')[-1].split('.')[0]
         print("----gpkg_name: ", gpkg_name)
@@ -785,7 +776,7 @@ class Geo360:
             self.orbitalViewer = Geo360Dialog(
                 self.iface, parent=self, featuresId=featuresId, layer=self.layer, name_layer=self.useLayer
             )
-            self.iface.addDockWidget(Qt.BottomDockWidgetArea, self.orbitalViewer)
+            self.iface.addDockWidget(Qt.RightDockWidgetArea, self.orbitalViewer)
     #         QgsProject.instance().layerRemoved.connect(self.layerRemoved)
 
 

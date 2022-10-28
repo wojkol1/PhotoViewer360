@@ -9,7 +9,7 @@ about= PL: Wtyczka pozwala na import zdjęć posiadających georeferencję i utw
     
     ENG: Plugin allows to import geotagged panoramic photos and to create GeoPackage file with them. It has an ability to view panoramic photos and to switch between them by selecting a point on the map or clicking on the hotspot while viewing the photo. In addition, it allows you to track the return of the camera using the radar located at the point for which the photo is viewed and to generate a graphic report with the current view in JPG/PNG format.
 version= 1.0
-author= EnviroSolutions Sp. z o.o. - Patrycja Tatar	
+author= EnviroSolutions Sp. z o.o. - Patrycja Tatar, Natalia Grudzińska
 email= office@envirosolutions.pl
 based on = EquirectangularViewer
 icon=images/icon.png
