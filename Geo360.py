@@ -47,11 +47,12 @@ import sys
 from qgis.gui import QgsFileWidget, QgsMessageBar
 from qgis.core import (
     QgsWkbTypes,
+    QgsCoordinateReferenceSystem
 )
 from qgis.gui import QgsRubberBand
 
 # from PyQt4.QtCore import QVariant
-from PIL import Image, ExifTags
+from PIL import Image, ExifTags, ImageQt
 import exifread
 from .slots import Slots
 
@@ -426,10 +427,21 @@ class Geo360:
             gpkg_temporary = processing.run("native:importphotos", {
                 'FOLDER': photo_path,
                 'RECURSIVE': False,
-                'OUTPUT': gpkg_path})
+                'OUTPUT':gpkg_path})
+                # 'OUTPUT': 'TEMPORARY_OUTPUT'})
 
         except:
             print("Tool Import Geotagged Photos failed!")
+
+        # gpkg_temporary = processing.run("native:reprojectlayer", {
+        #     'INPUT': list(gpkg_temporary.values())[0],
+        #     'TARGET_CRS':QgsCoordinateReferenceSystem('EPSG:2180'),
+        #     'OPERATION':'+proj=pipeline +step +proj=unitconvert +xy_in=deg +xy_out=rad +step +proj=tmerc +lat_0=0 +lon_0=19 +k=0.9993 +x_0=500000 +y_0=-5300000 +ellps=GRS80',
+        #     'OUTPUT':gpkg_path})
+
+        # print("reprojectlayer")
+
+
         gpkg_name = Path(gpkg_path).stem
         # gpkg_name = gpkg_path.split('\\')[-1].split('.')[0]
         print("----gpkg_name: ", gpkg_name)
@@ -825,32 +837,19 @@ class SelectTool(QgsMapToolIdentify):
         self.layer = layer
         self.parent = parent
 
+        image = Image.open(plugin_dir + "/images/target.png")
+        size = 20, 20
+        image.thumbnail(size, Image.Resampling.LANCZOS)
+        # image.show()
+        image_qt = ImageQt.ImageQt(image)
+        # image_qt = image_qt.size(100,100)
+        
+
         self.cursor = QCursor(
-            QPixmap(
-                [
-                    "16 16 3 1",
-                    "      c None",
-                    ".     c #FF0000",
-                    "+     c #FFFFFF",
-                    "                ",
-                    "       +.+      ",
-                    "      ++.++     ",
-                    "     +.....+    ",
-                    "    +.     .+   ",
-                    "   +.   .   .+  ",
-                    "  +.    .    .+ ",
-                    " ++.    .    .++",
-                    " ... ...+... ...",
-                    " ++.    .    .++",
-                    "  +.    .    .+ ",
-                    "   +.   .   .+  ",
-                    "   ++.     .+   ",
-                    "    ++.....+    ",
-                    "      ++.++     ",
-                    "       +.+      ",
-                ]
-            )
+            QPixmap.fromImage(image_qt)
         )
+
+        print(image_qt.size())
 
     def activate(self):
         self.canvas.setCursor(self.cursor)

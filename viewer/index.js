@@ -12,8 +12,20 @@ var geometry = new Marzipano.EquirectGeometry([{ width: 8192 }]);
 
 // Create view.
 var limiter = Marzipano.RectilinearView.limit.traditional(8192, 100*Math.PI/180);
-var view = new Marzipano.RectilinearView({ yaw:Math.PI/180},limiter);
+// var view = new Marzipano.RectilinearView({ yaw:Math.PI/180},limiter);
+// var initialView = {
+//   yaw: 0,
+//   pitch: 0,
+//   fov: 0
+// };
 
+var initialView = {
+  yaw: 0 * Math.PI/180,
+  pitch: 10 * Math.PI/180,
+  fov: 90 * Math.PI/180
+};
+
+var view = new Marzipano.RectilinearView(initialView, limiter);
 
 // Create scene.
 var scene = viewer.createScene({
@@ -44,6 +56,8 @@ const positions =[]
 const coord_x =[]
 const coord_y =[]
 const index_list = []
+const distance_list = []
+const width_list = []
 
 let data_coord = pythonSlot.getPhotoDetails();
 //alert(data_coord.toString());
@@ -74,10 +88,21 @@ aLines.forEach(function(element){
             coord_y.push(y1)
             var index = coord[3]
             index_list.push(index)
+            var distance = Math.sqrt(Math.abs((x1 - x)*(x1 - x)) + Math.abs((y1 - y)*(y1 - y))) *100000
+            distance_list.push(distance)
+            if (distance < 5){
+              var width = 140
+            } else if (distance >= 5) {
+              var width = 600/distance
+            }
+            // var width = 600/distance
+            width_list.push(width)
+            // $('#coord').text('distance= '+ distance );
             // var az = 295
             // var az = parseFloat(coord[2])
             // $('#coord').text('index= '+ index );
-            var position = (Math.PI/180)*az-(Math.atan2(x1-x,y1-y))
+            // var position = (Math.PI/180)*az-(Math.atan2(x1-x,y1-y))
+            var position = ((360-az)*(Math.PI/180))+Math.atan2(x1-x,y1-y)
 
             // var position = (Math.atan2(x1-x,y1-y))
             // alert('position= ' + position + " index: " +index );
@@ -90,12 +115,14 @@ aLines.forEach(function(element){
 
 for (let i=0; i<positions.length; i++) {
   var container = document.getElementById('container');
-  container.innerHTML += '<div id="link-hotspot"><img class="link-hotspot-icon" src="img/hotspot.png"></div>'
+  // $('#coord').text('width_list[i]= '+ width_list[i] );
+  container.innerHTML += `<div id="link-hotspot"><img class="link-hotspot-icon" src="img/hotspot.png"  style="width: ${width_list[i]}px"></div>`
 }
 var list = document.querySelectorAll("#link-hotspot");
 
 for (let i=0; i<list.length; i++) {
-  scene.hotspotContainer().createHotspot(list[i], {yaw: positions[i]});
+  // scene.hotspotContainer().createHotspot(list[i], {yaw: positions[i]});
+  scene.hotspotContainer().createHotspot(list[i], {yaw: positions[i],   pitch: (25-distance_list[i])*(Math.PI/180)});
   list[i].addEventListener('click', function() {
   /*
   pythonSlot - obiekt js umożliwiający komunikację z pythonem

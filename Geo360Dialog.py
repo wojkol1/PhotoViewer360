@@ -301,7 +301,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         bufor_2180 = processing.run("native:buffer", {
             'INPUT': list(selected_feature_2180.values())[0],
-            'DISTANCE': 10, 'SEGMENTS': 5, 'END_CAP_STYLE': 0, 'JOIN_STYLE': 0, 'MITER_LIMIT': 2, 'DISSOLVE': False,
+            'DISTANCE': 8, 'SEGMENTS': 5, 'END_CAP_STYLE': 0, 'JOIN_STYLE': 0, 'MITER_LIMIT': 2, 'DISSOLVE': False,
             'OUTPUT': 'TEMPORARY_OUTPUT'})
 
         # QgsProject.instance().addMapLayer(list(bufor_2180.values())[0])
@@ -527,7 +527,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
             self.iface.mapCanvas(), QgsWkbTypes.LineGeometry
         )
         self.actualPointOrientation.setColor(Qt.magenta)
-        self.actualPointOrientation.setWidth(5)
+        self.actualPointOrientation.setWidth(3)
 
         # self.actualPointOrientation.addPoint(self.actualPointDx)
 

@@ -37,7 +37,7 @@ html, body {
   display: block;
   position: absolute;
   bottom: 0;
-  left: 50%;
+  left: 90%;
   width: 40px;
   height: 40px;
   padding: 5px;
@@ -125,8 +125,8 @@ body.view-control-buttons .viewControlButton {
 }
 
 .hotspot {
-  width: 60px;
-  height: 60px;
+  width: 120px;
+  height: 120px;
 }
 
 #coord{
@@ -146,7 +146,7 @@ body.view-control-buttons .viewControlButton {
 }
 
 .link-hotspot-icon {
-  width: 60px;
+  /* width: 120px; */
   height: 100%;
   cursor: pointer;
   opacity: 0.9;
