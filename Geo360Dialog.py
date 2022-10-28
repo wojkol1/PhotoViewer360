@@ -312,10 +312,45 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         """Get Coordinates of an Image and Hotspots"""
         # współrzędne w układzie EPSG:4326
+
+        # geom_2180 = processing.run("native:reprojectlayer", {
+        #     'INPUT':QgsProcessingFeatureSourceDefinition(self.layer.name(), 
+        #     selectedFeaturesOnly=True, 
+        #     featureLimit=-1, 
+        #     geometryCheck=QgsFeatureRequest.GeometryAbortOnInvalid),
+        #     'TARGET_CRS':QgsCoordinateReferenceSystem('EPSG:2180'),
+        #     'OPERATION':'+proj=pipeline +step +proj=unitconvert +xy_in=deg +xy_out=rad +step +proj=tmerc +lat_0=0 +lon_0=19 +k=0.9993 +x_0=500000 +y_0=-5300000 +ellps=GRS80','OUTPUT':'TEMPORARY_OUTPUT'})
+
+        # print("geom_2180:",  list(geom_2180.values())[0])
+
         list_of_attribute_list = []
         for feat in self.layer.selectedFeatures():
-            x = feat.attributes()[5]
-            y = feat.attributes()[6]
+        # for feat in list(geom_2180.values())[0].getFeatures():
+            # x = feat.attributes()[5]
+            print(feat)
+            geom = feat.geometry()
+            # y = feat.attributes()[6]
+            print(geom.asPoint().x())
+            print(geom.asPoint().y())
+            x = geom.asPoint().x()
+            y = geom.asPoint().y()
+
+            # geom_2180 = processing.run("native:reprojectlayer", {'INPUT': feat,
+            #     # 'INPUT': QgsProcessingFeatureSourceDefinition(geom, selectedFeaturesOnly=True, featureLimit=-1,
+            #     #                                             geometryCheck=QgsFeatureRequest.GeometryAbortOnInvalid),
+            #     'TARGET_CRS': QgsCoordinateReferenceSystem('EPSG:2180'),
+            #     'OPERATION': '+proj=pipeline +step +proj=unitconvert +xy_in=deg +xy_out=rad +step +proj=tmerc +lat_0=0 +lon_0=19 +k=0.9993 +x_0=500000 +y_0=-5300000 +ellps=GRS80',
+            #     'OUTPUT': 'TEMPORARY_OUTPUT'})
+
+            # print(geom_2180)
+
+            # y_2180 = processing.run("native:reprojectlayer", {
+            #     'INPUT': QgsProcessingFeatureSourceDefinition(y, selectedFeaturesOnly=True, featureLimit=-1,
+            #                                                 geometryCheck=QgsFeatureRequest.GeometryAbortOnInvalid),
+            #     'TARGET_CRS': QgsCoordinateReferenceSystem('EPSG:2180'),
+            #     'OPERATION': '+proj=pipeline +step +proj=unitconvert +xy_in=deg +xy_out=rad +step +proj=tmerc +lat_0=0 +lon_0=19 +k=0.9993 +x_0=500000 +y_0=-5300000 +ellps=GRS80',
+            #     'OUTPUT': 'TEMPORARY_OUTPUT'})
+
             azymut = feat.attributes()[4]
             index_feature = feat.id()
             print("index: ", index_feature)
@@ -332,7 +367,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
             # try:
             #     list_of_attribute_list.append(x + ' ' + y + ' ' + str(self.old_bearing) + ' ' + str(index_feature) + ' ' + str(azymut_obliczony))
             # except AttributeError:
-            list_of_attribute_list.append(x + ' ' + y + ' ' + azymut_metadane + ' ' + str(index_feature) + ' ' + str(azymut_obliczony))
+            list_of_attribute_list.append(str(x) + ' ' + str(y) + ' ' + azymut_metadane + ' ' + str(index_feature) + ' ' + str(azymut_obliczony))
 
             self.layer.removeSelection()
 
@@ -491,7 +526,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         self.actualPointOrientation = QgsRubberBand(
             self.iface.mapCanvas(), QgsWkbTypes.LineGeometry
         )
-        self.actualPointOrientation.setColor(Qt.gray)
+        self.actualPointOrientation.setColor(Qt.magenta)
         self.actualPointOrientation.setWidth(5)
 
         # self.actualPointOrientation.addPoint(self.actualPointDx)
