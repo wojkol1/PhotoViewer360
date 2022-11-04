@@ -37,8 +37,8 @@ class Slots(QtCore.QObject):
         self._x = x
         self._y = y
         self._index = index
-        print("wykryto hot spot slot !!!!!!!!!")
-        print(x, " ", y, " ", index)
+        # print("wykryto hot spot slot !!!!!!!!!")
+        # print(x, " ", y, " ", index)
         self.signal.emit()
 
     @QtCore.pyqtSlot(result=list)

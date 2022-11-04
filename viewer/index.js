@@ -57,7 +57,10 @@ const coord_x =[]
 const coord_y =[]
 const index_list = []
 const distance_list = []
-const width_list = []
+
+function deg2rad(deg) {
+  return deg * (Math.PI/180)
+}
 
 let data_coord = pythonSlot.getPhotoDetails();
 //alert(data_coord.toString());
@@ -88,15 +91,9 @@ aLines.forEach(function(element){
             coord_y.push(y1)
             var index = coord[3]
             index_list.push(index)
-            var distance = Math.sqrt(Math.abs((x1 - x)*(x1 - x)) + Math.abs((y1 - y)*(y1 - y))) *100000
+            var distance = parseFloat(coord[5])
             distance_list.push(distance)
-            if (distance < 5){
-              var width = 140
-            } else if (distance >= 5) {
-              var width = 600/distance
-            }
-            // var width = 600/distance
-            width_list.push(width)
+
             // $('#coord').text('distance= '+ distance );
             // var az = 295
             // var az = parseFloat(coord[2])
@@ -113,10 +110,18 @@ aLines.forEach(function(element){
     }
 })
 
+// $('#coord').text('distance= '+ distance_list + 'index = ' + index_list);
+
 for (let i=0; i<positions.length; i++) {
   var container = document.getElementById('container');
-  // $('#coord').text('width_list[i]= '+ width_list[i] );
-  container.innerHTML += `<div id="link-hotspot"><img class="link-hotspot-icon" src="img/hotspot.png"  style="width: ${width_list[i]}px"></div>`
+  // container.innerHTML += `<div id="link-hotspot"><img class="link-hotspot-icon" src="img/hotspot.png"  style="width: ${width_list[i]}px"></div>`
+  if (distance_list[i] > 6.0 ){
+    container.innerHTML += `<div id="link-hotspot"><img class="link-hotspot-icon" src="img/hotspot.png"  style="width: 80px"></div>`
+  } 
+  else {
+    container.innerHTML += `<div id="link-hotspot"><img class="link-hotspot-icon" src="img/hotspot.png"  style="width: 120px"></div>`
+  }
+  // container.innerHTML += `<div id="link-hotspot"><img class="link-hotspot-icon" src="img/hotspot.png"></div>`
 }
 var list = document.querySelectorAll("#link-hotspot");
 

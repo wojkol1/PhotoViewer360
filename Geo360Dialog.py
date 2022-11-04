@@ -62,6 +62,7 @@ from PyQt5 import QtCore, QtWidgets
 
 from .slots import Slots
 import msvcrt
+from math import sin, cos, sqrt, atan2, radians
 
 try:
     from pydevd import *
@@ -146,7 +147,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         # Get image path
         self.current_image = self.GetImage()
-        print("type path image: ", self.current_image)
+        # print("type path image: ", self.current_image)
 
         # Check if image exist
         if os.path.exists(self.current_image) is False:
@@ -177,7 +178,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
     def onNewData(self, data):
         try:
-            print(data[0].replace("yaw=",""))
+            # print(data[0].replace("yaw=",""))
             newYaw = float(data[0].replace("yaw=",""))
             self.UpdateOrientation(yaw=newYaw)
         except:
@@ -261,7 +262,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
                 kilometraz = str(feature.attributes()[11])
 
         if nazwa_ulicy == "NULL":
-            print(" nazwa ulicy null")
+            # print(" nazwa ulicy null")
             file_metadata.write(
                 '<!DOCTYPE html>' + '\n' + '<html lang="pl">' + '\n' + '<head>' + '\n' + '   <meta charset="UTF-8">' + '\n' + '  <title>Photos metadata</title>' + '\n' + '</head>' + '\n' + '<body>' + '\n' + ' <div id="photo_data" style="position: absolute; top: 0; left: 0px; padding-top: 0px;width: 250px; max-height: 100%; overflow: hidden; margin-left: 0; background-color: rgba(58,68,84,0.8); color:white; font-family: Calibri; line-height: 0.7;">' + '\n')
             file_metadata.write('<p style="margin-left: 5px;">' + "<b>" + "Numer drogi: " + "</b>" + "</p>")
@@ -299,7 +300,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         bufor_2180 = processing.run("native:buffer", {
             'INPUT': list(selected_feature_2180.values())[0],
-            'DISTANCE': 8, 'SEGMENTS': 5, 'END_CAP_STYLE': 0, 'JOIN_STYLE': 0, 'MITER_LIMIT': 2, 'DISSOLVE': False,
+            'DISTANCE': 10, 'SEGMENTS': 5, 'END_CAP_STYLE': 0, 'JOIN_STYLE': 0, 'MITER_LIMIT': 2, 'DISSOLVE': False,
             'OUTPUT': 'TEMPORARY_OUTPUT'})
 
         # QgsProject.instance().addMapLayer(list(bufor_2180.values())[0])
@@ -312,30 +313,27 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         # współrzędne w układzie EPSG:4326
 
         list_of_attribute_list = []
+
         for feat in self.layer.selectedFeatures():
-        # for feat in list(geom_2180.values())[0].getFeatures():
-            # x = feat.attributes()[5]
-            print(feat)
             geom = feat.geometry()
-            # y = feat.attributes()[6]
-            print(geom.asPoint().x())
-            print(geom.asPoint().y())
             x = geom.asPoint().x()
             y = geom.asPoint().y()
 
             azymut = feat.attributes()[4]
             index_feature = feat.id()
-            print("index: ", index_feature)
+            # print("index: ", index_feature)
             azymut_metadane = str(azymut).replace(",",".")
-            print("azymut_metadane: ", azymut_metadane)
+            # print("azymut_metadane: ", azymut_metadane)
 
 
             centr = QgsPointXY(float(x), float(y))
             pkt = QgsPointXY(float(x_punktu), float(y_punktu))
             azymut_obliczony = centr.azimuth(pkt)
-            print('azymut_obliczony: ', azymut_obliczony)
+            # print('azymut_obliczony: ', azymut_obliczony)
+
+            distance = self.distance_function(y_punktu, y, x_punktu, x)
             
-            list_of_attribute_list.append(str(x) + ' ' + str(y) + ' ' + azymut_metadane + ' ' + str(index_feature) + ' ' + str(azymut_obliczony))
+            list_of_attribute_list.append(str(x) + ' ' + str(y) + ' ' + azymut_metadane + ' ' + str(index_feature) + ' ' + str(azymut_obliczony) + ' ' + str(distance))
 
             self.layer.removeSelection()
 
@@ -351,13 +349,26 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
             if not os.path.isabs(path):  # Relative Path to Project
                 path_project = QgsProject.instance().readPath("./")
                 path = os.path.normpath(os.path.join(path_project, path))
-                print(path)
+                # print(path)
         except Exception:
             qgsutils.showUserAndLogMessage(u"Information: ", u"Column not found.")
             return
 
         qgsutils.showUserAndLogMessage(u"Information: ", str(path), onlyLog=True)
         return path
+        
+    def distance_function(self, lat1, lat2, lon1, lon2):
+        lat1 = radians(float(lat1))
+        lon1 = radians(float(lon1))
+        lat2 = radians(float(lat2))
+        lon2 = radians(float(lon2))
+        R = 6373.0
+        dlon = lon2 - lon1
+        dlat = lat2 - lat1
+        a = (sin(dlat/2))**2 + cos(lat1) * cos(lat2) * (sin(dlon/2))**2
+        c = 2 * atan2(sqrt(a), sqrt(1-a))
+        distance = R * c * 1000
+        return distance
 
     def ChangeUrlViewer(self, new_url):
         """Change Url Viewer"""
@@ -366,11 +377,10 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
     def ClickHotspot(self):
         """Reaload Image viewer after click hotspot"""
 
-        print("click hotspot")
+        # print("click hotspot")
         coordinate_hotspot = self.slots.getHotSpotDetailsToPython()
-        print("coordinate_hotspot: ", coordinate_hotspot)
-        print('obsługa Sygnału')
-        print("layer: ", self.layer)
+        # print("coordinate_hotspot: ", coordinate_hotspot)
+        # print("layer: ", self.layer)
         newId = int(coordinate_hotspot[2])
 
         self.ReloadView(newId)
@@ -407,7 +417,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
 
         self.selected_features = qgsutils.getToFeature(self.layer, newId)
-        print("ReloadView")
+        # print("ReloadView")
 
         # loc = self.plugin_path + "/viewer"
         # test = os.listdir(loc)
@@ -454,7 +464,6 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
             self.isWindowFullScreen = False
 
     def GetScreenShot(self):
-        print("Screen Shot")
 
         image_path, extencion = QFileDialog.getSaveFileName(self.cef_widget, "Wskaż lokalizacje zrzutu ekranu",
                                                             "",
@@ -468,8 +477,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         pixmap.save(image_path)
         image = Image.open(image_path)
         image.show()
-        print("image path after save: ", image_path)
-        print("self.bearing: ", self.bearing)
+        # print("image path after save: ", image_path)
 
     def UpdateOrientation(self, yaw=None):
         """Update Orientation"""
@@ -482,13 +490,12 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
             self.layer.crs().authid(),
             self.canvas.mapSettings().destinationCrs().authid(),
         ) 
-        
-        print("self.bearing: ", self.bearing)
+      
         try:
             self.actualPointOrientation.reset()
-            print("actualPointOrientation update orientation reset")
+            # print("actualPointOrientation update orientation reset")
         except Exception:
-            print("actualPointOrientation update orientation")
+            # print("actualPointOrientation update orientation")
             pass
 
         self.actualPointOrientation = QgsRubberBand(
@@ -592,13 +599,6 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
             self.canvas.mapSettings().destinationCrs().authid(),
         )
 
-        # try:
-        #     self.positionDx.reset()
-        #     print("positionDx reset")
-        # except Exception:
-        #     print("positionDx")
-        #     pass
-
         self.positionDx = QgsRubberBand(
             self.iface.mapCanvas(), QgsWkbTypes.PointGeometry
         )
@@ -608,13 +608,6 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         self.positionDx.setIconSize(6)
         self.positionDx.setColor(QColor(0, 102, 153))
 
-        # try:
-        #     self.positionSx.reset()
-        #     print("positionSx reset")
-        # except Exception:
-        #     print("positionSx")
-        #     pass
-
         self.positionSx = QgsRubberBand(
             self.iface.mapCanvas(), QgsWkbTypes.PointGeometry
         )
@@ -623,13 +616,6 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         self.positionSx.setIcon(QgsRubberBand.ICON_CIRCLE)
         self.positionSx.setIconSize(4)
         self.positionSx.setColor(QColor(0, 102, 153))
-
-        # try:
-        #     self.positionInt.reset()
-        #     print("positionInt reset")
-        # except Exception:
-        #     print("positionInt")
-        #     pass
 
         self.positionInt = QgsRubberBand(
             self.iface.mapCanvas(), QgsWkbTypes.PointGeometry
@@ -654,7 +640,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
     def resetQgsRubberBand(self):
         """Remove RubbeBand"""
-        print("reset qgis rubber band")
+        # print("reset qgis rubber band")
         try:
             self.positionSx.reset()
             self.positionInt.reset()
