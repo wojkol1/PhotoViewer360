@@ -450,6 +450,11 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         self.slots.signal.connect(self.ClickHotspot)
 
+    # def keyPressEvent(self, event):
+    #     if not event.key() == Qt.Key_Escape:
+    #         # super(LoginDialog, self).keyPressEvent(event)
+    #         print("keyPressEvent")
+
     def FullScreen(self):
         if not self.isWindowFullScreen:
             self.setFloating(True)
@@ -457,6 +462,13 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
             self.setWindowState(Qt.WindowFullScreen)
             self.cef_widget.showFullScreen()
             self.isWindowFullScreen = True
+
+            
+            # if msvcrt.kbhit() and msvcrt.getch()==chr(27):
+            #     self.cef_widget.showNormal()
+            #     self.setWindowState(self.normalWindowState)
+            #     self.setFloating(False)
+            #     self.isWindowFullScreen = False
         else:
             self.cef_widget.showNormal()
             self.setWindowState(self.normalWindowState)

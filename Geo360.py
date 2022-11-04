@@ -632,8 +632,6 @@ class Geo360:
         self.progress = QProgressBar()
         self.progress.setMaximum(100)
         self.progress.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-        progressMessageBar.layout().addWidget(self.progress)
-        self.iface.messageBar().pushWidget(progressMessageBar, Qgis.Info)
         
 
         if not gpkg_path or gpkg_path == '':
@@ -650,14 +648,16 @@ class Geo360:
             msgBox.exec_()
 
             if msgBox.clickedButton() == nowy_plik_button:
+                progressMessageBar.layout().addWidget(self.progress)
+                self.iface.messageBar().pushWidget(progressMessageBar, Qgis.Info)
                 self.progress.setValue(0)
                 # self.usuniecie_warstwy_z_projektu(gpkg_path)
                 self.usuniecie_wartosci_gpkg(gpkg_path)
                 self.nadpisanie_plik_button_clicked(photo_path, gpkg_path)
-                self.progress.setValue(100)
-                self.dlg.hide()
-                self.click_feature()
+
             elif msgBox.clickedButton() == nadpisanie_plik_button:
+                progressMessageBar.layout().addWidget(self.progress)
+                self.iface.messageBar().pushWidget(progressMessageBar, Qgis.Info)
                 self.progress.setValue(0)
                 self.nadpisanie_plik_button_clicked(photo_path, gpkg_path)
                 # self.usuwanie_duplikatow(gpkg_path)
@@ -696,14 +696,24 @@ class Geo360:
                                          f"Stwierdzono duplikaty zdjęć: \n"
                                          f"{lista_zdjec}")
                     msgbox.exec_()
-                
-                self.progress.setValue(100)
-                self.dlg.hide()
-                self.click_feature()
+
             elif msgBox.clickedButton() == anuluj_button:
                 return False
             else:
                 pass
+
+            lys = QgsProject.instance().mapLayers().values()
+            for layer in lys:
+                if (layer.name() == Path(gpkg_path).stem):
+                    QgsProject.instance().removeMapLayers( [layer.id()] )
+
+            layer = QgsVectorLayer(gpkg_path, Path(gpkg_path).stem, 'ogr')
+            QgsProject.instance().addMapLayer(layer)
+            self.useLayer = str(layer.name())
+
+            self.progress.setValue(100)
+            self.dlg.hide()
+            self.click_feature()
 
         else:
             self.progress.setValue(0)
@@ -711,6 +721,7 @@ class Geo360:
             # vlayer = QgsVectorLayer(vlayer, gpkg_path.split('\\')[-1].split('.')[0], "ogr")
             # QgsVectorFileWriter.writeAsVectorFormat(vlayer, gpkg_path, "utf-8", vlayer.crs(), "GeoPackage")
             QgsProject.instance().addMapLayer(vlayer)
+            print("create geopackage")
             self.useLayer = str(vlayer.name())
             self.progress.setValue(100)
             self.dlg.hide()
