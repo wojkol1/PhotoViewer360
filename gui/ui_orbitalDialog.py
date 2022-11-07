@@ -9,10 +9,10 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from .. import plugin_dir
-from qgis.gui import QgsFileWidget
 
 
 class Ui_orbitalDialog(object):
+    """Klasa definiująca wygląd okna do przeglądania zdjęć (okno Street View)"""
     
     def setupUi(self, orbitalDialog):
         orbitalDialog.setObjectName("orbitalDialog")
@@ -24,6 +24,8 @@ class Ui_orbitalDialog(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(orbitalDialog.sizePolicy().hasHeightForWidth())
         orbitalDialog.setSizePolicy(sizePolicy)
+
+        # dodanie okna ze zdjęciem 
         icon = QtGui.QIcon()
         icon.addPixmap(
             QtGui.QPixmap(plugin_dir + "/images/icon.png"),
@@ -48,19 +50,7 @@ class Ui_orbitalDialog(object):
         )
         self.horizontalLayout.addItem(spacerItem)
 
-        # self.label = QtWidgets.QLabel(self.dockWidgetContents)
-        # self.label.setAlignment(QtCore.Qt.AlignCenter)
-        # self.label.setObjectName("label")
-        # self.horizontalLayout.addWidget(self.label)
-
-        # self.QgsFileWidget_save_img = QgsFileWidget(self.dockWidgetContents)
-        # self.QgsFileWidget_save_img.setUseLink(False)
-        # self.QgsFileWidget_save_img.setFullUrl(False)
-        # self.QgsFileWidget_save_img.setStorageMode(QgsFileWidget.SaveFile)
-        # self.QgsFileWidget_save_img.setObjectName("QgsFileWidget_save_img")
-        # self.horizontalLayout.addWidget(self.QgsFileWidget_save_img)
-
-
+        # dodanie przycisku służącego do zrobienia raportu graficznego
         self.btn_screenshot = QtWidgets.QPushButton(self.dockWidgetContents)
         self.btn_screenshot.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.btn_screenshot.setText("")
@@ -74,11 +64,7 @@ class Ui_orbitalDialog(object):
         self.btn_screenshot.setObjectName("btn_screenshot")
         self.horizontalLayout.addWidget(self.btn_screenshot)
 
-        # spacerItem1 = QtWidgets.QSpacerItem(
-        #     5, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum
-        # )
-        # self.horizontalLayout.addItem(spacerItem1)
-
+        # dodanie przycisku służącego do obsługi fullscreen'a
         self.btn_fullscreen = QtWidgets.QPushButton(self.dockWidgetContents)
         self.btn_fullscreen.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.btn_fullscreen.setText("")
@@ -103,8 +89,11 @@ class Ui_orbitalDialog(object):
         orbitalDialog.setWidget(self.dockWidgetContents)
 
         self.retranslateUi(orbitalDialog)
+        
+        # obsługa wciśnięć przycisków w oknie przeglądania zdjęć
         self.btn_fullscreen.clicked["bool"].connect(orbitalDialog.FullScreen)
         self.btn_screenshot.clicked.connect(orbitalDialog.GetScreenShot)
+
         QtCore.QMetaObject.connectSlotsByName(orbitalDialog)
 
     def retranslateUi(self, orbitalDialog):
@@ -112,4 +101,3 @@ class Ui_orbitalDialog(object):
         orbitalDialog.setWindowTitle(
             _translate("orbitalDialog", "PhotoViewer360")
         )
-        # self.label.setText(_translate("main", "Wybierz ściężkę zapisu zrzutu widoku: "))

@@ -12,13 +12,8 @@ var geometry = new Marzipano.EquirectGeometry([{ width: 8192 }]);
 
 // Create view.
 var limiter = Marzipano.RectilinearView.limit.traditional(8192, 100*Math.PI/180);
-// var view = new Marzipano.RectilinearView({ yaw:Math.PI/180},limiter);
-// var initialView = {
-//   yaw: 0,
-//   pitch: 0,
-//   fov: 0
-// };
 
+// stworzenie zmiennej odpowiedzialnej za umiejscowienie hotspot'u na zdjęciu 
 var initialView = {
   yaw: 0 * Math.PI/180,
   pitch: 10 * Math.PI/180,
@@ -35,7 +30,7 @@ var scene = viewer.createScene({
   pinFirstLevel: true
 });
 
-//Wyświetlanie info o zdjęciu
+//Wyświetlanie informacji o zdjęciu
 var fileMetadata = document.querySelector('#photo_data');
 var fileToggleMetadata = document.querySelector('#file_metadata');
 
@@ -50,7 +45,6 @@ var viewChangeHandler = function() {
  
 view.addEventListener('change', viewChangeHandler);
 
-//////////////////////////// NOWE PODEJŚCIE///////////////////////////////////////////////
 
 const positions =[]
 const coord_x =[]
@@ -58,33 +52,25 @@ const coord_y =[]
 const index_list = []
 const distance_list = []
 
+// funkcja zmieniająca stopnie na radiany
 function deg2rad(deg) {
   return deg * (Math.PI/180)
 }
 
+// odebranie parametrów zdjęcia z python'a
 let data_coord = pythonSlot.getPhotoDetails();
-//alert(data_coord.toString());
-// $('#coord').text(data_coord.toString());
 
+// obliczanie pozycji hotspot'a na zdjęciu za pomocą parametrów z python'a
 var aLines = data_coord.toString().split(",")
 aLines.forEach(function(element){
-// $('#coord').text(coord_end);
     var coord = element.split(" ")
-  //  $('#coord').text(coord[0]);
-    if (coord[4] === '0.0'){
+    if (coord[4] === '0.0'){  // wybranie danych dla punktu, w którym aktualnie jesteśmy (dla którego jest wyświetlane zdjęcie)
       var x = parseFloat(coord[0])
       var y = parseFloat(coord[1])
       var az = parseFloat(coord[2])
-//      $('#coord').text(aLines);
       for (let i=0; i<(aLines.length); i++){
-//         $('#coord').text(aLines[i]);
-//        var coord_substr = aLines[i].substr(2)
-        // $('#coord').text(aLines);
-//        var coord_end = coord_substr.replace("'","").replace("]","")
         var coord = aLines[i].split(" ")
-//         $('#coord').text('coord: '+coord);
-          if (coord[4]!='0.0'){
-            // $('#coord').text('coord: '+coord);
+          if (coord[4]!='0.0'){ // wybranie pozostałych punktów
             var x1 = parseFloat(coord[0])
             coord_x.push(x1)
             var y1 = parseFloat(coord[1])
@@ -94,51 +80,33 @@ aLines.forEach(function(element){
             var distance = parseFloat(coord[5])
             distance_list.push(distance)
 
-            // $('#coord').text('distance= '+ distance );
-            // var az = 295
-            // var az = parseFloat(coord[2])
-            // $('#coord').text('index= '+ index );
-            // var position = (Math.PI/180)*az-(Math.atan2(x1-x,y1-y))
             var position = ((360-az)*(Math.PI/180))+Math.atan2(x1-x,y1-y)
-
-            // var position = (Math.atan2(x1-x,y1-y))
-            // alert('position= ' + position + " index: " +index );
-            // $('#coord').text('x1= '+x1+'x= '+x+'position: '+position);
             positions.push(position)
           }
       }
     }
 })
 
-// $('#coord').text('distance= '+ distance_list + 'index = ' + index_list);
-
+// zdefiniowanie wyglądu hatsppt'a
 for (let i=0; i<positions.length; i++) {
   var container = document.getElementById('container');
-  // container.innerHTML += `<div id="link-hotspot"><img class="link-hotspot-icon" src="img/hotspot.png"  style="width: ${width_list[i]}px"></div>`
   if (distance_list[i] > 6.0 ){
     container.innerHTML += `<div id="link-hotspot"><img class="link-hotspot-icon" src="img/hotspot.png"  style="width: 80px"></div>`
   } 
   else {
     container.innerHTML += `<div id="link-hotspot"><img class="link-hotspot-icon" src="img/hotspot.png"  style="width: 120px"></div>`
   }
-  // container.innerHTML += `<div id="link-hotspot"><img class="link-hotspot-icon" src="img/hotspot.png"></div>`
 }
 var list = document.querySelectorAll("#link-hotspot");
 
+// stworzenie hotspotów
 for (let i=0; i<list.length; i++) {
-  // scene.hotspotContainer().createHotspot(list[i], {yaw: positions[i]});
   scene.hotspotContainer().createHotspot(list[i], {yaw: positions[i],   pitch: (25-distance_list[i])*(Math.PI/180)});
+  // obsługa kliknięcia w hotspot
   list[i].addEventListener('click', function() {
-  /*
-  pythonSlot - obiekt js umożliwiający komunikację z pythonem
-  */
-    //  let a = pythonSlot.getPhotoDetails();
-    //  alert(a.toString());
-  // pythonSlot.showMessage('Hello from WebKit');
-  pythonSlot.setXYtoPython(coord_x[i], coord_y[i], index_list[i]);
 
-  // alert('x= ' + coord_x[i]+', y= '+coord_y[i] + ', index = ' + index_list[i]);
-  // $('#coord').text('x= ' + coord_x[i]+', y= '+coord_y[i] + ', index = ' + index_list[i]);
+  // skomunikowanie się z python'em poprzez obiekt pythonSlot (przesłanie wspólrzędnych oraz indeksu punktu)
+  pythonSlot.setXYtoPython(coord_x[i], coord_y[i], index_list[i]);
   var coord = document.getElementById('coord');
   coord.innerHTML += toString(x+","+y)
 });

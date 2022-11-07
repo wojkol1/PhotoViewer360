@@ -18,12 +18,9 @@
  ***************************************************************************/
 """
 
-from gzip import FTEXT
 import math
-import sys
 import processing
 import os
-import json
 from os.path import basename
 from qgis.core import (
     QgsPointXY,
@@ -31,34 +28,24 @@ from qgis.core import (
     QgsFeatureRequest,
     QgsVectorLayer,
     QgsWkbTypes,
-    QgsGeometry,
     QgsProcessingFeatureSourceDefinition,
     QgsCoordinateReferenceSystem
 )
 from qgis.gui import QgsRubberBand
 
 from qgis.PyQt.QtCore import (
-    QObject,
     QUrl,
     Qt,
-    pyqtSignal,
-    QSize,
-    QSettings,
-    QRect,
-    QPoint,
-    QBuffer
+    pyqtSignal
 )
-from qgis.PyQt.QtWidgets import QDialog, QWidget, QDockWidget, QPushButton, QFileDialog, QApplication
-from qgis.PyQt.QtGui import QWindow, QColor, QImage, QPainter, QScreen
+from qgis.PyQt.QtWidgets import QDockWidget, QFileDialog
+from qgis.PyQt.QtGui import QColor
 import PhotoViewer360.config as config
 from PhotoViewer360.geom.transformgeom import transformGeometry
 from PhotoViewer360.gui.ui_orbitalDialog import Ui_orbitalDialog
 from PhotoViewer360.utils.qgsutils import qgsutils
 from qgis.PyQt.QtWebKitWidgets import QWebView, QWebPage
 from qgis.PyQt.QtWebKit import QWebSettings
-from PyQt5.QtPrintSupport import QPrinter
-from PyQt5.QtCore import QDate, QDateTime
-from PyQt5 import QtCore, QtWidgets
 
 from .slots import Slots
 from math import sin, cos, sqrt, atan2, radians
@@ -80,10 +67,7 @@ class _ViewerPage(QWebPage):
 
     def javaScriptConsoleMessage(self, msg, line, source):
         l = msg.split(",")
-        # print(msg)
         if 'yaw' in l[0]:
-            # print(l[0])
-            # print(l)
             self.obj = l
             self.newData.emit(l)
 
@@ -146,7 +130,6 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         # Get image path
         self.current_image = self.GetImage()
-        # print("type path image: ", self.current_image)
 
         # Check if image exist
         if os.path.exists(self.current_image) is False:
@@ -177,7 +160,6 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
     def onNewData(self, data):
         try:
-            # print(data[0].replace("yaw=",""))
             newYaw = float(data[0].replace("yaw=",""))
             self.UpdateOrientation(yaw=newYaw)
         except:
@@ -204,19 +186,10 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         """ połaczenie z javascriptem"""
         self.slots = Slots()
-
-        # self.slots.setXYId(x=123, y=456, id=987)    # push params to JS
         self.cef_widget.page().mainFrame().addToJavaScriptWindowObject("pythonSlot", self.slots)
 
         self.cef_widget.load(QUrl(self.DEFAULT_URL))
         self.ViewerLayout.addWidget(self.cef_widget, 1, 0)
-
-    # def SetInitialYaw(self):
-    #     """Set Initial Viewer Yaw"""
-    #     self.bearing = self.selected_features.attribute(config.column_yaw)
-    #     # self.view.browser.GetMainFrame().ExecuteFunction("InitialYaw",
-    #     #                                                  self.bearing)
-    #     return
 
     def RemoveImage(self):
         """Remove Image"""
@@ -261,7 +234,6 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
                 kilometraz = str(feature.attributes()[11])
 
         if nazwa_ulicy == "NULL":
-            # print(" nazwa ulicy null")
             file_metadata.write(
                 '<!DOCTYPE html>' + '\n' + '<html lang="pl">' + '\n' + '<head>' + '\n' + '   <meta charset="UTF-8">' + '\n' + '  <title>Photos metadata</title>' + '\n' + '</head>' + '\n' + '<body>' + '\n' + ' <div id="photo_data" style="position: absolute; top: 0; left: 0px; padding-top: 0px;width: 250px; max-height: 100%; overflow: hidden; margin-left: 0; background-color: rgba(58,68,84,0.8); color:white; font-family: Calibri; line-height: 0.7;">' + '\n')
             file_metadata.write('<p style="margin-left: 5px;">' + "<b>" + "Numer drogi: " + "</b>" + "</p>")
@@ -302,9 +274,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
             'DISTANCE': 10, 'SEGMENTS': 5, 'END_CAP_STYLE': 0, 'JOIN_STYLE': 0, 'MITER_LIMIT': 2, 'DISSOLVE': False,
             'OUTPUT': 'TEMPORARY_OUTPUT'})
 
-        # QgsProject.instance().addMapLayer(list(bufor_2180.values())[0])
-
-        point_selected = processing.run("native:selectbylocation",
+        processing.run("native:selectbylocation",
                                         {'INPUT': self.layer.name(), 'PREDICATE': 0,
                                          'INTERSECT': list(bufor_2180.values())[0], 'METHOD': 0})
 
@@ -320,15 +290,12 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
             azymut = feat.attributes()[4]
             index_feature = feat.id()
-            # print("index: ", index_feature)
             azymut_metadane = str(azymut).replace(",",".")
-            # print("azymut_metadane: ", azymut_metadane)
 
 
             centr = QgsPointXY(float(x), float(y))
             pkt = QgsPointXY(float(x_punktu), float(y_punktu))
             azymut_obliczony = centr.azimuth(pkt)
-            # print('azymut_obliczony: ', azymut_obliczony)
 
             distance = self.distance_function(y_punktu, y, x_punktu, x)
             
@@ -337,8 +304,6 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
             self.layer.removeSelection()
 
         self.slots.setXYId(coordinates=list_of_attribute_list)
-        # coordinate_hotspot = self.slots.getHotSpotDetailsToPython()
-        # print("coordinate_hotspot: ", coordinate_hotspot)
 
         """Get Selected Image"""
         try:
@@ -348,7 +313,6 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
             if not os.path.isabs(path):  # Relative Path to Project
                 path_project = QgsProject.instance().readPath("./")
                 path = os.path.normpath(os.path.join(path_project, path))
-                # print(path)
         except Exception:
             qgsutils.showUserAndLogMessage(u"Information: ", u"Column not found.")
             return
@@ -375,11 +339,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
     def ClickHotspot(self):
         """Reaload Image viewer after click hotspot"""
-
-        # print("click hotspot")
         coordinate_hotspot = self.slots.getHotSpotDetailsToPython()
-        # print("coordinate_hotspot: ", coordinate_hotspot)
-        # print("layer: ", self.layer)
         newId = int(coordinate_hotspot[2])
 
         self.ReloadView(newId)
@@ -387,9 +347,6 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
     def ReloadView(self, newId):
         """Reaload Image viewer"""
-        # self.setWindowState(self.windowState() & ~Qt.WindowMinimized | Qt.WindowActive)
-        # # this will activate the window
-        # self.activateWindow()
 
         self.cef_widget = QWebView()
         self.cef_widget.setContextMenuPolicy(Qt.NoContextMenu)
@@ -407,24 +364,12 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         # """ połaczenie z javascriptem"""
         self.slots = Slots()
-
-        # # self.slots.setXYId(x=123, y=456, id=987)    # push params to JS
         self.cef_widget.page().mainFrame().addToJavaScriptWindowObject("pythonSlot", self.slots)
 
         self.cef_widget.load(QUrl(self.DEFAULT_URL))
         self.ViewerLayout.addWidget(self.cef_widget, 1, 0)
 
-
         self.selected_features = qgsutils.getToFeature(self.layer, newId)
-        # print("ReloadView")
-
-        # loc = self.plugin_path + "/viewer"
-        # test = os.listdir(loc)
-        # print(test)
-
-        # for item in test:
-        #     if (item.endswith(".jpg") or item.endswith(".png")) and not item.endswith("image.jpg") and not item.endswith("noImage.jpg"):
-        #         os.remove(os.path.join(loc, item))
 
         self.current_image = self.GetImage()
 
@@ -484,7 +429,6 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         pixmap.save(image_path)
         image = Image.open(image_path)
         image.show()
-        # print("image path after save: ", image_path)
 
     def UpdateOrientation(self, yaw=None):
         """Update Orientation"""
@@ -500,9 +444,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
       
         try:
             self.actualPointOrientation.reset()
-            # print("actualPointOrientation update orientation reset")
         except Exception:
-            # print("actualPointOrientation update orientation")
             pass
 
         self.actualPointOrientation = QgsRubberBand(
@@ -510,8 +452,6 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         )
         self.actualPointOrientation.setColor(Qt.magenta)
         self.actualPointOrientation.setWidth(3)
-
-        # self.actualPointOrientation.addPoint(self.actualPointDx)
 
         # Lewy punkt
         CS = self.canvas.mapUnitsPerPixel() * 18
@@ -647,7 +587,6 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
     def resetQgsRubberBand(self):
         """Remove RubbeBand"""
-        # print("reset qgis rubber band")
         try:
             self.positionSx.reset()
             self.positionInt.reset()

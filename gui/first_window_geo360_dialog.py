@@ -24,17 +24,12 @@
 
 import os
 from qgis.PyQt import QtGui, QtWidgets, uic
-from qgis.PyQt.QtCore import pyqtSignal, QRegExp
-from PyQt5.QtGui import QRegExpValidator
-from qgis.gui import QgsFileWidget
-from qgis.core import QgsMapLayerProxyModel
+from qgis.PyQt.QtCore import pyqtSignal
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'first_window_geo360_base.ui'))
 
-
-# class FirstWindowGeo360Dialog(QtWidgets.QDialog):
 class FirstWindowGeo360Dialog(QtWidgets.QDialog, FORM_CLASS):
 
     closingPlugin = pyqtSignal()
