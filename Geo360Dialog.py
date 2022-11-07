@@ -61,7 +61,6 @@ from PyQt5.QtCore import QDate, QDateTime
 from PyQt5 import QtCore, QtWidgets
 
 from .slots import Slots
-import msvcrt
 from math import sin, cos, sqrt, atan2, radians
 
 try:
@@ -450,10 +449,12 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         self.slots.signal.connect(self.ClickHotspot)
 
-    # def keyPressEvent(self, event):
-    #     if not event.key() == Qt.Key_Escape:
-    #         # super(LoginDialog, self).keyPressEvent(event)
-    #         print("keyPressEvent")
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Escape:
+            self.cef_widget.showNormal()
+            self.setWindowState(self.normalWindowState)
+            self.setFloating(False)
+            self.isWindowFullScreen = False
 
     def FullScreen(self):
         if not self.isWindowFullScreen:
@@ -463,12 +464,6 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
             self.cef_widget.showFullScreen()
             self.isWindowFullScreen = True
 
-            
-            # if msvcrt.kbhit() and msvcrt.getch()==chr(27):
-            #     self.cef_widget.showNormal()
-            #     self.setWindowState(self.normalWindowState)
-            #     self.setFloating(False)
-            #     self.isWindowFullScreen = False
         else:
             self.cef_widget.showNormal()
             self.setWindowState(self.normalWindowState)
