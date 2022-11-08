@@ -7,7 +7,7 @@
                              -------------------
         begin                : 2022-08-08
         copyright            : EnviroSolutions Sp z o.o.
-        emial                : office@envirosolutions.pl
+        email                : office@envirosolutions.pl
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *

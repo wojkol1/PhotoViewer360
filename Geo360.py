@@ -9,7 +9,7 @@
         copyright            : (C) 2016 All4Gis.
         email                : franka1986@gmail.com
         edited by            : EnviroSolutions Sp z o.o.
-        emial                : office@envirosolutions.pl
+        email                : office@envirosolutions.pl
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
