@@ -380,10 +380,16 @@ class Geo360:
         # Processing feedback
         def progress_changed(progress):
             """Funkcja pokazująca progres podczas pracy narzędzia "Importuj geotagowane zdjęcia" """
-            self.progress.setValue(5 + (progress*34/100))
-            QApplication.processEvents()
+            try:
+                self.progress.setValue(5 + (progress*34/100))
+                QApplication.processEvents()
+            except RuntimeError:
+                pass
 
-        self.progress.setValue(5)
+        try:
+            self.progress.setValue(5)
+        except RuntimeError:
+            pass
 
         gpkg_path = os.path.join(gpkg_path)
         try:
@@ -399,7 +405,10 @@ class Geo360:
         except:
             print("Tool Import Geotagged Photos failed!")
 
-        self.progress.setValue(40)
+        try:
+            self.progress.setValue(40)
+        except RuntimeError:
+                pass
 
         gpkg_name = Path(gpkg_path).stem
 
@@ -451,8 +460,11 @@ class Geo360:
             for feature in features:
 
                 time_progress += 1
-                self.progress.setValue(45+int(50*time_progress)/number_of_features)
-                QApplication.processEvents()
+                try:
+                    self.progress.setValue(45+int(50*time_progress)/number_of_features)
+                    QApplication.processEvents()
+                except RuntimeError:
+                    pass
                 
                 # uzupełnienie wartości dla atrybutów: nr_drogi, nazwa_ulicy, numer_odcinka, kilometraz
                 nazwa_zdjecia = feature["nazwa_zdjecia"]
@@ -498,7 +510,10 @@ class Geo360:
                             vlayer.dataProvider().fieldNameMap()['data_wykonania']: str(self.dataTime)}})
                     sciezka_zdjecie_open.close()
 
-        self.progress.setValue(95)
+        try:
+            self.progress.setValue(95)
+        except RuntimeError:
+            pass
         vlayer.commitChanges()
         return vlayer
 
@@ -512,7 +527,10 @@ class Geo360:
                 for feat in layer.getFeatures():
                     layer.deleteFeature(feat.id())
                 layer.commitChanges()
-        self.progress.setValue(5)
+        try:
+            self.progress.setValue(5)
+        except RuntimeError:
+            pass
 
 
     def polaczenie_warstw(self, gpkg_path, overwrite):
@@ -535,7 +553,10 @@ class Geo360:
 
     def dopisanie_plik_button_clicked(self, photo_path, gpkg_path):
         """Obsługa wyboru przycisku dopisania danych do GeoPaczki"""
-        self.progress.setValue(2)
+        try:
+            self.progress.setValue(2)
+        except RuntimeError:
+                pass
         vlayer_overwrite = self.create_gpkg(photo_path, os.path.join(plugin_dir, 'temporary_files', 'overwrite.gpkg'))
         self.polaczenie_warstw(gpkg_path, vlayer_overwrite)
         
@@ -552,11 +573,17 @@ class Geo360:
         if duplicate['DUPLICATE_COUNT'] > 0:    # obsługa wykrycia duplikatów w warstwie
 
             self.usuniecie_wartosci_gpkg(gpkg_path)
-            self.progress.setValue(96)
+            try:
+                self.progress.setValue(96)
+            except RuntimeError:
+                pass
 
             layer_no_duplicate = QgsVectorLayer(duplicate['OUTPUT'], 'no_duplicate', 'ogr')
             self.polaczenie_warstw(gpkg_path, layer_no_duplicate)
-            self.progress.setValue(98)
+            try:
+                self.progress.setValue(98)
+            except RuntimeError:
+                pass
 
             # przygotowanie informacji o zduplikowanych zdjęciach
             sciezka_zdjecie_list = []
@@ -619,14 +646,20 @@ class Geo360:
             if msgBox.clickedButton() == nowy_plik_button:  # obsługa przycisku do stworzenia nowego pliku gpkg (dane z istniejącego pliku zostaną skasowane)
                 progressMessageBar.layout().addWidget(self.progress)
                 self.iface.messageBar().pushWidget(progressMessageBar, Qgis.Info)
-                self.progress.setValue(0)
+                try:
+                    self.progress.setValue(0)
+                except RuntimeError:
+                    pass
                 self.usuniecie_wartosci_gpkg(gpkg_path)
                 self.dopisanie_plik_button_clicked(photo_path, gpkg_path)
 
             elif msgBox.clickedButton() == dopisanie_plik_button:  # obsługa przycisku do dodania nowych danych do pliku gpkg (do danych z istniejącego pliku zostaną dopisane nowe)
                 progressMessageBar.layout().addWidget(self.progress)
                 self.iface.messageBar().pushWidget(progressMessageBar, Qgis.Info)
-                self.progress.setValue(0)
+                try:
+                    self.progress.setValue(0)
+                except RuntimeError:
+                    pass
                 self.dopisanie_plik_button_clicked(photo_path, gpkg_path)
                 self.usuwanie_duplikatow(gpkg_path)
 
@@ -645,7 +678,10 @@ class Geo360:
             QgsProject.instance().addMapLayer(layer)
             self.useLayer = str(layer.name())
 
-            self.progress.setValue(100)
+            try:
+                self.progress.setValue(100)
+            except RuntimeError:
+                pass
             # ukrycie okna PhotoViewer360 - ustawienia
             self.dlg.hide()
             self.click_feature()
@@ -657,7 +693,10 @@ class Geo360:
             vlayer = self.create_gpkg(photo_path, gpkg_path)
             QgsProject.instance().addMapLayer(vlayer)
             self.useLayer = str(vlayer.name())
-            self.progress.setValue(100)
+            try:
+                self.progress.setValue(100)
+            except RuntimeError:
+                pass
             self.dlg.hide()
             self.click_feature()
 
