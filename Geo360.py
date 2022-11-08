@@ -538,7 +538,7 @@ class Geo360:
         
 
     def usuwanie_duplikatow(self, gpkg_path):
-        # uruchomienie narzędzia do wykrywania duplikatów w warstwie po wybranych atrybutach
+        """uruchomienie narzędzia do wykrywania duplikatów w warstwie po wybranych atrybutach"""
         duplicate = processing.run("native:removeduplicatesbyattribute",
                                     {'INPUT': gpkg_path,
                                     'FIELDS': ['nazwa_zdjecia', 'długosc geog', 'szerokosc geog',

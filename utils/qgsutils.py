@@ -53,7 +53,7 @@ class qgsutils(object):
                     )
                     x = projPoint.x()
                     y = projPoint.y()
-                    rect = QgsRectangle(x*0.99998, y*0.99998, x*1.00002, y*1.00002)
+                    rect = QgsRectangle(x*0.99998, y*0.99998, x*1.00002, y*1.00002) # zakres zoom w przypadku przybliżenia do punktu
                     canvas.setExtent(rect)
                     canvas.refresh()
                     return True
