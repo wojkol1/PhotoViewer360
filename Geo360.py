@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  PhotoViewer360
@@ -7,6 +8,8 @@
         begin                : 2017-02-17
         copyright            : (C) 2016 All4Gis.
         email                : franka1986@gmail.com
+        edited by            : EnviroSolutions Sp z o.o.
+        emial                : office@envirosolutions.pl
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -648,6 +651,8 @@ class Geo360:
             self.click_feature()
 
         else: # obsługa wskazania ścieżki zapisu gpkg (bez komplikacji)
+            progressMessageBar.layout().addWidget(self.progress)
+            self.iface.messageBar().pushWidget(progressMessageBar, Qgis.Info)
             self.progress.setValue(0)
             vlayer = self.create_gpkg(photo_path, gpkg_path)
             QgsProject.instance().addMapLayer(vlayer)
