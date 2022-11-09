@@ -325,7 +325,7 @@ class Ui_main(object):
 
     def retranslateUi(self, main):
         _translate = QtCore.QCoreApplication.translate
-        main.setWindowTitle(_translate("main", "PhotoViewer360 - ustawienia"))
+        main.setWindowTitle(_translate("main", "PhotoViewer360"))
         self.lbl_title.setText(_translate("main", "Wybierz dane do przeglądania zdjęć panoramicznych"))
         self.label_3.setText(_translate("main", "Wybierz folder ze zdjęciami z georeferencją i azymutem"))
         self.label.setText(_translate("main", "Wybierz ścieżkę zapisu paczki GeoPackage z warstwą punktową zdjęć"))

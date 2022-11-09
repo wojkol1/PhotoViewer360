@@ -209,12 +209,12 @@ class Geo360:
 
         # eventy
 
-        # obsługa zdarzeń wciśnięć przycisków w oknie PhotoViewer360 - ustawienia
+        # obsługa zdarzeń wciśnięć przycisków w oknie PhotoViewer360
         self.dlg.fromLayer_btn.clicked.connect(self.fromLayer_btn_clicked)
         self.dlg.fromPhotos_btn.clicked.connect(self.fromPhotos_btn_clicked)
         self.dlg.fromGPKG_btn.clicked.connect(self.fromGPKG_btn_clicked)
 
-        # obsługa ścieżek do plików/folderów w oknie PhotoViewer360 - ustawienia
+        # obsługa ścieżek do plików/folderów w oknie PhotoViewer360
         self.dlg.mQgsFileWidget_search_photo.setFilePath(
             self.settings.value("", ""))
         self.dlg.mQgsFileWidget_search_photo.fileChanged.connect(
@@ -234,11 +234,11 @@ class Geo360:
             lambda: self.settings.setValue("",
                                            self.dlg.mQgsFileWidget_search_gpkg.filePath()))
 
-        # obsługa wybrania warstwy z projektu w oknie PhotoViewer360 - ustawienia
+        # obsługa wybrania warstwy z projektu w oknie PhotoViewer360
         self.dlg.mapLayerComboBox.setFilters(QgsMapLayerProxyModel.PointLayer)
         self.dlg.mapLayerComboBox.setShowCrs(True)
 
-        # obsługa usunięcia warstwy w oknie PhotoViewer360 - ustawienia
+        # obsługa usunięcia warstwy w oknie PhotoViewer360
         QgsProject.instance().layerRemoved.connect(self.layerRemoved)
 
 
@@ -303,7 +303,7 @@ class Geo360:
 
     def run(self):
         "Run after pressing the plugin"
-        # wywołanie okna "PhotoViewer360 - ustawienia" po wciśnięciu ikony aparatu
+        # wywołanie okna "PhotoViewer360" po wciśnięciu ikony aparatu
         self.dlg.show()
 
 
@@ -682,7 +682,7 @@ class Geo360:
                 self.progress.setValue(100)
             except RuntimeError:
                 pass
-            # ukrycie okna PhotoViewer360 - ustawienia
+            # ukrycie okna PhotoViewer360
             self.dlg.hide()
             self.click_feature()
 

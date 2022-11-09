@@ -35,7 +35,7 @@
    <enum>Qt::NoFocus</enum>
   </property>
   <property name="windowTitle">
-   <string>PhotoViewer360 - ustawienia</string>
+   <string>PhotoViewer360</string>
   </property>
   <property name="sizeGripEnabled">
    <bool>false</bool>
