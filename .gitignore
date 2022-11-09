@@ -5,5 +5,8 @@
 #ignore folder
 __pycache__/
 .idea/
+temporary_files/
+Project_example/
+#ignore file
 image.jpg
 viewer/file_metadata.html

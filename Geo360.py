@@ -246,8 +246,9 @@ class Geo360:
         """Załadowanie narzędzi PhotoViewer360"""
 
         # zamykanie otwartych okien wtyczki i dezaktywacja celownika
+        self.action_activate.setEnabled(False)
+        self.iface.actionPan().trigger()
         if self.orbitalViewer != None:
-            self.action_activate.setEnabled(False)
             self.orbitalViewer.close() 
         if self.dlg != None:
             self.dlg.close()  
@@ -616,6 +617,16 @@ class Geo360:
         if not self.checkSavePath(photo_path):
             return False
 
+        # sprawdzenie, czy w folderze ze zdjęciami są pliki zdjęć (.jpg)
+        files = os.listdir(photo_path)
+        rozszerzenia = []
+        for file in files:
+            rozszerzenie = file.split('.')
+            rozszerzenia.append(rozszerzenie[-1])
+        if ('jpg'not in rozszerzenia):
+            QMessageBox(QMessageBox.Warning, "Ostrzeżenie:", 'We wskazanym folderze ze zdjęciami brak plików z rozszerzeniem .jpg').exec_()
+            return False
+
         gpkg_path = self.dlg.mQgsFileWidget_save_gpkg.filePath()
         # sprawdzenie rozszerzenia pliku wpisanego przez użytkownika
         if gpkg_path.find('.gpkg') == -1:
@@ -771,6 +782,7 @@ class Geo360:
             return False
         else:
             return True
+
 
 class SelectTool(QgsMapToolIdentify):
     """Obsługa wybrania zdjęcia z mapy projektu (wybór punktu)"""
