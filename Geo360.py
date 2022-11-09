@@ -754,9 +754,11 @@ class Geo360:
         for one_layer in lys:
             layers_name.append(one_layer.name())
         if (self.useLayer not in layers_name):
+            self.action_activate.setEnabled(False)
+            self.iface.actionPan().trigger()
             if self.orbitalViewer != None:
-                self.action_activate.setEnabled(False)
                 self.orbitalViewer.close()
+                
             
 
     def checkSavePath(self, path):
@@ -783,7 +785,7 @@ class SelectTool(QgsMapToolIdentify):
         # stworzenie kursora/celownika do wybierania obiektu na mapie
         image = Image.open(plugin_dir + "/images/target.png")
         size = 20, 20
-        image.thumbnail(size, Image.Resampling.LANCZOS)
+        image.thumbnail(size)
         image_qt = ImageQt.ImageQt(image)
         
         self.cursor = QCursor(
