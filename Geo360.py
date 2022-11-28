@@ -318,11 +318,12 @@ class Geo360:
                 self.mapTool = SelectTool(self.iface, parent=self, layer=layer)
                 self.iface.mapCanvas().setMapTool(self.mapTool)
 
-                xform = QgsCoordinateTransform(QgsCoordinateReferenceSystem(layer.crs()),
-                                               QgsCoordinateReferenceSystem(self.canvas.mapSettings().destinationCrs()),
-                                               QgsProject.instance())
-                self.canvas.setExtent(xform.transform(layer.extent()))
-                self.canvas.refresh()
+                # zoom do wybranej warstwy
+                # xform = QgsCoordinateTransform(QgsCoordinateReferenceSystem(layer.crs()),
+                #                                QgsCoordinateReferenceSystem(self.canvas.mapSettings().destinationCrs()),
+                #                                QgsProject.instance())
+                # self.canvas.setExtent(xform.transform(layer.extent()))
+                # self.canvas.refresh()
 
             
     def activate(self):
@@ -358,11 +359,12 @@ class Geo360:
                 self.iface.mapCanvas().setMapTool(self.mapTool)
 
                 # zoom do wybranej warstwy
-                xform = QgsCoordinateTransform(QgsCoordinateReferenceSystem(layer.crs()),
-                                               QgsCoordinateReferenceSystem(self.canvas.mapSettings().destinationCrs()),
-                                               QgsProject.instance())
-                self.canvas.setExtent(xform.transform(layer.extent()))
-                self.canvas.refresh()
+                # xform = QgsCoordinateTransform(QgsCoordinateReferenceSystem(layer.crs()),
+                #                                QgsCoordinateReferenceSystem(self.canvas.mapSettings().destinationCrs()),
+                #                                QgsProject.instance())
+                # self.canvas.setExtent(xform.transform(layer.extent()))
+                # self.canvas.refresh()
+
                 self.dlg.hide()
                 self.click_feature()
             else:
@@ -795,8 +797,8 @@ class SelectTool(QgsMapToolIdentify):
         self.parent = parent
 
         # stworzenie kursora/celownika do wybierania obiektu na mapie
-        image = Image.open(plugin_dir + "/images/target.png")
-        size = 20, 20
+        image = Image.open(plugin_dir + "/images/test.png")
+        size = 28, 28
         image.thumbnail(size)
         image_qt = ImageQt.ImageQt(image)
         

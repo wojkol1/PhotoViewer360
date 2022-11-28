@@ -87,7 +87,7 @@ aLines.forEach(function(element){
     }
 })
 
-// zdefiniowanie wyglądu hatsppt'a
+// zdefiniowanie wyglądu hotspot'a
 for (let i=0; i<positions.length; i++) {
   var container = document.getElementById('container');
   if (distance_list[i] > 6.0 ){

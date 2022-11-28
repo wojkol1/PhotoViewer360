@@ -32,7 +32,8 @@ from qgis.core import (
     QgsVectorLayer,
     QgsWkbTypes,
     QgsProcessingFeatureSourceDefinition,
-    QgsCoordinateReferenceSystem
+    QgsCoordinateReferenceSystem,
+    QgsCoordinateTransform
 )
 from qgis.gui import QgsRubberBand
 
@@ -361,10 +362,15 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
     def ClickHotspot(self):
         """Odbiór sygnału po kliknięciu w Hotspot"""
-
+        # try:
+        #     del coordinate_hotspot
+        # except:
+        #     pass
         coordinate_hotspot = self.slots.getHotSpotDetailsToPython() # połączenie z Java Scriptem
         newId = int(coordinate_hotspot[2])
         self.ReloadView(newId)
+        qgsutils.zoomToFeature(self.canvas, self.layer, newId)
+        del coordinate_hotspot
 
 
     def ReloadView(self, newId):
