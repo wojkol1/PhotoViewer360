@@ -5,6 +5,7 @@ var viewer = new Marzipano.Viewer(document.getElementById('pano'));
 // Create source.
 var source = Marzipano.ImageUrlSource.fromString(
   "image.jpg"
+  // "G624851G_Cicha_0.jpg"
 );
 
 // Create geometry.
@@ -80,7 +81,15 @@ aLines.forEach(function(element){
             var distance = parseFloat(coord[5])
             distance_list.push(distance)
 
-            var position = ((360-az)*(Math.PI/180))+Math.atan2(x1-x,y1-y)
+            // I sposób
+            // var position = ((360-az)*(Math.PI/180))+Math.atan2(x1-x,y1-y)
+
+            // II sposób (lepszy)
+            var dx = x1-x
+            var rad = Math.PI/180
+            var X_calc = Math.cos(y1*rad)*Math.sin(dx*rad)
+            var Y_calc = (Math.cos(y*rad)*Math.sin(y1*rad))-(Math.sin(y*rad)*Math.cos(y1*rad)*Math.cos(dx*rad))
+            var position = ((360-az)*rad)+Math.atan2(X_calc,Y_calc)
             positions.push(position)
           }
       }
@@ -104,11 +113,13 @@ for (let i=0; i<list.length; i++) {
   scene.hotspotContainer().createHotspot(list[i], {yaw: positions[i],   pitch: (25-distance_list[i])*(Math.PI/180)});
   // obsługa kliknięcia w hotspot
   list[i].addEventListener('click', function() {
-
+  delete scene.source;
+  delete scene.geometry
+  delete scene.view;
   // skomunikowanie się z python'em poprzez obiekt pythonSlot (przesłanie wspólrzędnych oraz indeksu punktu)
   pythonSlot.setXYtoPython(coord_x[i], coord_y[i], index_list[i]);
   var coord = document.getElementById('coord');
-  coord.innerHTML += toString(x+","+y)
+  coord.innerHTML += toString(x+","+y);
 });
 }
 

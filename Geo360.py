@@ -41,6 +41,7 @@ import time, os
 from pathlib import Path
 from PIL import Image, ExifTags, ImageQt
 import exifread
+from .slots import Slots
 
 try:
     from pydevd import *
@@ -86,6 +87,8 @@ class Geo360:
         if not self.toolbar:
             self.toolbar = self.iface.addToolBar(u'PhotoViewer360')
             self.toolbar.setObjectName(u'PhotoViewer360')
+        
+        self.slots = Slots()
 
         # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -318,7 +321,7 @@ class Geo360:
                 self.mapTool = SelectTool(self.iface, parent=self, layer=layer)
                 self.iface.mapCanvas().setMapTool(self.mapTool)
 
-                # zoom do wybranej warstwy
+                # # zoom do wybranej warstwy
                 # xform = QgsCoordinateTransform(QgsCoordinateReferenceSystem(layer.crs()),
                 #                                QgsCoordinateReferenceSystem(self.canvas.mapSettings().destinationCrs()),
                 #                                QgsProject.instance())
@@ -358,7 +361,7 @@ class Geo360:
                 self.mapTool = SelectTool(self.iface, parent=self, layer=layer)
                 self.iface.mapCanvas().setMapTool(self.mapTool)
 
-                # zoom do wybranej warstwy
+                # # zoom do wybranej warstwy
                 # xform = QgsCoordinateTransform(QgsCoordinateReferenceSystem(layer.crs()),
                 #                                QgsCoordinateReferenceSystem(self.canvas.mapSettings().destinationCrs()),
                 #                                QgsProject.instance())
@@ -758,6 +761,26 @@ class Geo360:
                 self.iface, parent=self, featuresId=featuresId, layer=self.layer, name_layer=self.useLayer
             )
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.orbitalViewer)
+            
+            # odebranie sygnału kliknięcia hotspot'u
+            self.orbitalViewer.slots.signal.connect(self.ClickHotspot)
+    
+    
+    def ClickHotspot(self):
+        """Odbiór sygnału po kliknięciu w Hotspot"""
+
+        coordinate_hotspot = self.orbitalViewer.slots.getHotSpotDetailsToPython() # połączenie z Java Scriptem
+        print("coordinate_hotspot: ", coordinate_hotspot)
+        newId = int(coordinate_hotspot[2])
+        print("newId: ", newId)
+        self.orbitalViewer.ReloadView(newId)
+        self.orbitalViewer.slots.signal.connect(self.ClickHotspot)
+        qgsutils.zoomToFeature(self.canvas, self.layer, newId)
+
+        # layer = self.dlg.mapLayerComboBox.currentText()
+        # layer = QgsProject.instance().mapLayersByName(layer.split(' ')[0])[0]
+        # self.ShowViewer(featuresId=newId, layer=layer)
+        # qgsutils.zoomToFeature(self.canvas, self.layer, newId)
 
 
     def layerRemoved(self):
@@ -771,6 +794,7 @@ class Geo360:
             self.iface.actionPan().trigger()
             if self.orbitalViewer != None:
                 self.orbitalViewer.close()
+                
                 
             
 
@@ -797,7 +821,7 @@ class SelectTool(QgsMapToolIdentify):
         self.parent = parent
 
         # stworzenie kursora/celownika do wybierania obiektu na mapie
-        image = Image.open(plugin_dir + "/images/test.png")
+        image = Image.open(plugin_dir + "/images/celownik.png")
         size = 28, 28
         image.thumbnail(size)
         image_qt = ImageQt.ImageQt(image)
@@ -820,3 +844,4 @@ class SelectTool(QgsMapToolIdentify):
             # Zoom To Feature
             qgsutils.zoomToFeature(self.canvas, layer, feature.id())
             self.parent.ShowViewer(featuresId=feature.id(), layer=layer)
+            print("feature.id(): ", feature.id())

@@ -134,6 +134,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         # otrzymanie ściezki do zdjęcia
         self.current_image = self.GetImage()
+        print("self.current_image: ", self.current_image)
 
         # sprawdzenie czy istnieje ścieżka do zdjęcia
         if os.path.exists(self.current_image) is False:
@@ -156,8 +157,8 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         self.isWindowFullScreen = False
         self.normalWindowState = None
 
-        # odebranie sygnału kliknięcia hotspot'u
-        self.slots.signal.connect(self.ClickHotspot)
+        # # odebranie sygnału kliknięcia hotspot'u
+        # self.slots.signal.connect(self.ClickHotspot)
         
     def __del__(self):
         """dekonstruktor, uruchamia się przy zamknięciu okna"""
@@ -219,6 +220,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         try:
             os.remove(dst_dir)
+            # print("Usunęło się !!!!!!")
         except OSError:
             pass
 
@@ -230,7 +232,17 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         # zebranie danych potrzebnych do wyświetlenia informacji o zdjęciu
         dateTime = "Brak daty" # domyślna wartość
         for feature in self.layer.getFeatures():
-            if feature.attributes()[2] == name_img.split(".")[0]:
+
+            # # poprawa podziału nazwy poprzez "."
+            # print(name_img)
+            # print(name_img.split(".")[0:-2])
+            # print(name_img.split(".")[0:-1])
+            # print(name_img.split(".")[:-1])
+            # print(name_img.split(".")[-1])
+            # print(name_img.replace(".jpg",""))
+            # if feature.attributes()[2] == name_img.split(".")[0]:
+
+            if feature.attributes()[2] == name_img.replace(".jpg",""):
                 dateTime = feature.attributes()[7]
                 dateTime = str(dateTime.toString(Qt.ISODate)).replace("T", " ")
                 nr_drogi = str(feature.attributes()[8])
@@ -338,6 +350,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
             return
 
         qgsutils.showUserAndLogMessage(u"Information: ", str(path), onlyLog=True)
+        print("path: ", path)
         return path
         
     def distance_function(self, lat1, lat2, lon1, lon2):
@@ -360,17 +373,18 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         """Funkcja odpowiadająca za załadowanie odpowiedniego pliku HTML"""
         self.cef_widget.load(QUrl(new_url))
 
-    def ClickHotspot(self):
-        """Odbiór sygnału po kliknięciu w Hotspot"""
-        # try:
-        #     del coordinate_hotspot
-        # except:
-        #     pass
-        coordinate_hotspot = self.slots.getHotSpotDetailsToPython() # połączenie z Java Scriptem
-        newId = int(coordinate_hotspot[2])
-        self.ReloadView(newId)
-        qgsutils.zoomToFeature(self.canvas, self.layer, newId)
-        del coordinate_hotspot
+    # def ClickHotspot(self):
+    #     """Odbiór sygnału po kliknięciu w Hotspot"""
+
+    #     # try:
+    #     #     del coordinate_hotspot
+    #     # except:
+    #     #     pass
+    #     coordinate_hotspot = self.slots.getHotSpotDetailsToPython() # połączenie z Java Scriptem
+    #     newId = int(coordinate_hotspot[2])
+    #     self.ReloadView(newId)
+    #     qgsutils.zoomToFeature(self.canvas, self.layer, newId)
+    #     # del coordinate_hotspot
 
 
     def ReloadView(self, newId):
@@ -421,7 +435,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         self.ChangeUrlViewer(self.DEFAULT_URL)
 
         # odebranie sygnału kliknięcia hotspot'u
-        self.slots.signal.connect(self.ClickHotspot)
+        # self.slots.signal.connect(self.ClickHotspot)
 
     def keyPressEvent(self, event):
         """Funkcja odpowiedzialna za wykrycie użycia przycisku ESC"""
