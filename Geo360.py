@@ -39,9 +39,10 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from threading import Thread
 import time, os
 from pathlib import Path
-from PIL import Image, ExifTags, ImageQt
+
 import exifread
 from .slots import Slots
+from .tools import SelectTool
 
 try:
     from pydevd import *
@@ -319,7 +320,6 @@ class Geo360:
         for layer in lys:
             if layer.name() == self.useLayer:
                 self.mapTool = SelectTool(self.iface, parent=self, layer=layer)
-                print('>>>A')
                 self.iface.mapCanvas().setMapTool(self.mapTool)
 
                 # # zoom do wybranej warstwy
@@ -337,9 +337,7 @@ class Geo360:
         layer = QgsProject.instance().mapLayersByName(layer.split(' ')[0])[0]
         self.iface.messageBar().pushMessage("Informacja", "Korzystasz z warstwy: " + self.useLayer, level=Qgis.Info, duration=-1)
         self.mapTool = SelectTool(self.iface, parent=self, layer=layer)
-        print('>>>B')
         self.iface.mapCanvas().setMapTool(self.mapTool)
-        print('test')
         self.click_feature()
 
 
@@ -362,7 +360,6 @@ class Geo360:
 
             if good_layer == True:
                 self.mapTool = SelectTool(self.iface, parent=self, layer=layer)
-                print('>>>C')
                 self.iface.mapCanvas().setMapTool(self.mapTool)
 
                 # # zoom do wybranej warstwy
@@ -814,39 +811,4 @@ class Geo360:
             return True
 
 
-class SelectTool(QgsMapToolIdentify):
-    """Obsługa wybrania zdjęcia z mapy projektu (wybór punktu)"""
 
-    def __init__(self, iface, parent=None, layer=None):
-        QgsMapToolIdentify.__init__(self, iface.mapCanvas())
-        self.canvas = iface.mapCanvas()
-        self.iface = iface
-        self.layer = layer
-        self.parent = parent
-
-        # stworzenie kursora/celownika do wybierania obiektu na mapie
-        image = Image.open(plugin_dir + "/images/celownik.png")
-        size = 28, 28
-        image.thumbnail(size)
-        image_qt = ImageQt.ImageQt(image)
-        
-        self.cursor = QCursor(
-            QPixmap.fromImage(image_qt)
-        )
-
-    def activate(self):
-        print('-----activate----', self.sender())
-        self.canvas.setCursor(self.cursor)
-
-    def canvasReleaseEvent(self, event):
-        found_features = self.identify(
-            event.x(), event.y(), [self.layer], self.TopDownAll
-        )
-
-        if len(found_features) > 0:
-            layer = found_features[0].mLayer
-            feature = found_features[0].mFeature
-            # Zoom To Feature
-            qgsutils.zoomToFeature(self.canvas, layer, feature.id())
-            self.parent.ShowViewer(featuresId=feature.id(), layer=layer)
-            print("feature.id(): ", feature.id())
