@@ -199,15 +199,15 @@ class Geo360:
             text=u"PhotoViewer360 aktywacja",
             callback=self.activate,
             parent=self.iface.mainWindow(),
-            enabled_flag = False)
+            enabled_flag=False)
 
         # will be set False in run()
         self.first_start = True
 
-        self.action.triggered.connect(self.run)
+        # self.action.triggered.connect(self.run)
         self.iface.addPluginToMenu(u"&PhotoViewer360", self.action)
 
-        self.action_activate.triggered.connect(self.activate)
+        #self.action_activate.triggered.connect(self.activate)
         self.iface.addPluginToMenu(u"&PhotoViewer360", self.action_activate)
 
         # eventy
@@ -319,6 +319,7 @@ class Geo360:
         for layer in lys:
             if layer.name() == self.useLayer:
                 self.mapTool = SelectTool(self.iface, parent=self, layer=layer)
+                print('>>>A')
                 self.iface.mapCanvas().setMapTool(self.mapTool)
 
                 # # zoom do wybranej warstwy
@@ -336,7 +337,9 @@ class Geo360:
         layer = QgsProject.instance().mapLayersByName(layer.split(' ')[0])[0]
         self.iface.messageBar().pushMessage("Informacja", "Korzystasz z warstwy: " + self.useLayer, level=Qgis.Info, duration=-1)
         self.mapTool = SelectTool(self.iface, parent=self, layer=layer)
+        print('>>>B')
         self.iface.mapCanvas().setMapTool(self.mapTool)
+        print('test')
         self.click_feature()
 
 
@@ -359,6 +362,7 @@ class Geo360:
 
             if good_layer == True:
                 self.mapTool = SelectTool(self.iface, parent=self, layer=layer)
+                print('>>>C')
                 self.iface.mapCanvas().setMapTool(self.mapTool)
 
                 # # zoom do wybranej warstwy
@@ -831,6 +835,7 @@ class SelectTool(QgsMapToolIdentify):
         )
 
     def activate(self):
+        print('-----activate----', self.sender())
         self.canvas.setCursor(self.cursor)
 
     def canvasReleaseEvent(self, event):
