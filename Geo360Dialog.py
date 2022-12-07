@@ -70,6 +70,8 @@ class _ViewerPage(QWebPage):
     obj = []  # synchronous
     newData = pyqtSignal(list)  # asynchronous
 
+    def emitSignal(self):
+        self.newData.emit(list())
     def javaScriptConsoleMessage(self, msg, line, source):
         l = msg.split(",")
         if 'yaw' in l[0]:
@@ -79,11 +81,50 @@ class _ViewerPage(QWebPage):
 
 class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
     """Geo360 Dialog Class"""
-    slots = Slots()
-    def __init__(self, iface, parent=None, featuresId=None, layer=None, name_layer=""):
+    _x = 0.0
+    _y = 0.0
+    _id = -1
+    _coordinates = []
+    _index = ""
+
+    def setXYId(self, coordinates):
+        """definiuje wartości parametrów do przekazania do JS"""
+        self._coordinates = coordinates
+
+    @QtCore.pyqtSlot(str, str, str)
+    def setXYtoPython(self, x, y, index):
+        """definiuje wartości parametrów do przekazania do Python'a """
+        self.ClickHotspot([x, y, index])
+
+
+    @QtCore.pyqtSlot(result=list)
+    def getPhotoDetails(self):
+        return [self._coordinates]
+
+    @QtCore.pyqtSlot(result=list)
+    def getHotSpotDetailsToPython(self):
+        return [self._x, self._y, self._index]
+
+    def ClickHotspot(self, coordinate_hotspot):
+        print('+++++click from dialog+++++')
+
+        #
+        print("coordinate_hotspot: ", coordinate_hotspot)
+        newId = int(coordinate_hotspot[2])
+        print("newId: ", newId)
+
+        # self.close()
+        self.reloadView(newId)
+        # self.__init__( self.iface, featuresId=newId, layer=self.layer, name_layer=self.useLayer)
+        # self.show()
+        # self.parent.createNewViewer(featuresId=newId, layer=self.layer)
+
+    def __init__(self, iface, featuresId=None, layer=None, name_layer=""):
 
         QDockWidget.__init__(self)
 
+        print('---orbitalViewer init----')
+        # self.signal.connect(self.ClickHotspot)
         self.useLayer = name_layer
 
         self.setupUi(self)
@@ -104,7 +145,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         self.plugin_path = os.path.dirname(os.path.realpath(__file__))
         self.iface = iface
         self.canvas = self.iface.mapCanvas()
-        self.parent = parent
+        # self.parent = parent
 
         # kierunek zdjęcia
         self.yaw = math.pi
@@ -159,7 +200,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         self.normalWindowState = None
 
 
-        print('---orbitalViewer init----')
+
         
     def __del__(self):
         """dekonstruktor, uruchamia się przy zamknięciu okna"""
@@ -193,7 +234,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
 
         self.page = _ViewerPage()
-        self.page.mainFrame().addToJavaScriptWindowObject("pythonSlot", self.slots)
+        self.page.mainFrame().addToJavaScriptWindowObject("pythonSlot", self)
         self.page.newData.connect(self.onNewData)
         self.cef_widget.setPage(self.page)
 
@@ -333,7 +374,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
             self.layer.removeSelection()
 
         # połączenie z Java Scriptem oraz przekazanie parametrów potrzebnych do wyświetlenia hotspotów
-        self.slots.setXYId(coordinates=list_of_attribute_list)
+        self.setXYId(coordinates=list_of_attribute_list)
 
 
     def GetImage(self):
@@ -393,26 +434,10 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
     def reloadView(self, newId):
         """Odświerzenie widoku zdjęcia (okna Street View)"""
         print('===reload view====', newId)
-        self.cef_widget = QWebView()
-        self.cef_widget.setContextMenuPolicy(Qt.NoContextMenu)
 
-        self.cef_widget.settings().setAttribute(QWebSettings.JavascriptEnabled, True)
-        pano_view_settings = self.cef_widget.settings()
-        pano_view_settings.setAttribute(QWebSettings.WebGLEnabled, True)
-        pano_view_settings.setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
-        pano_view_settings.setAttribute(QWebSettings.Accelerated2dCanvasEnabled, True)
-        pano_view_settings.setAttribute(QWebSettings.JavascriptEnabled, True)
-
-        self.page = _ViewerPage()
-        self.page.newData.connect(self.onNewData)
-        self.cef_widget.setPage(self.page)
-
-        # """ połaczenie z javascriptem"""
-        # self.slots = Slots()
-        self.cef_widget.page().mainFrame().addToJavaScriptWindowObject("pythonSlot", self.slots)
 
         self.cef_widget.load(QUrl(self.DEFAULT_URL))
-        self.ViewerLayout.addWidget(self.cef_widget, 1, 0)
+        # self.ViewerLayout.addWidget(self.cef_widget, 1, 0)
 
         self.selected_features = qgsutils.getToFeature(self.layer, newId)
 
@@ -635,7 +660,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         self.resetQgsRubberBand()
         self.canvas.refresh()
         self.iface.actionPan().trigger()
-        self.parent.orbitalViewer = None
+        # self.parent.orbitalViewer = None
         self.RemoveImage()
 
     def resetQgsRubberBand(self):

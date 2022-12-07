@@ -762,27 +762,31 @@ class Geo360:
 
 
         self.orbitalViewer = Geo360Dialog(
-            self.iface, parent=self, featuresId=featuresId, layer=layer, name_layer=self.useLayer
+            self.iface, featuresId=featuresId, layer=layer, name_layer=self.useLayer
         )
 
 
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.orbitalViewer)
 
         # odebranie sygnału kliknięcia hotspot'u
-        self.orbitalViewer.slots.signal.connect(self.ClickHotspot)
+        # self.orbitalViewer.signal.connect(self.ClickHotspot)
+        # self.layer.nameChanged.connect(self.ClickHotspot)
+    def test(self, e):
+        print('test', e)
+        self.layer.setName(self.layer.name()+'x')
+        # self.layer.setName(self.layer.name() + 'x')
 
-
-    def ClickHotspot(self):
+    def ClickHotspot(self,e):
         """Odbiór sygnału po kliknięciu w Hotspot"""
 
-        coordinate_hotspot = self.orbitalViewer.slots.getHotSpotDetailsToPython() # połączenie z JavaScriptem
+        # coordinate_hotspot = self.orbitalViewer.getHotSpotDetailsToPython() # połączenie z JavaScriptem
         #
-        print("coordinate_hotspot: ", coordinate_hotspot)
-        newId = int(coordinate_hotspot[2])
-        print("newId: ", newId)
-        import random
-        print(random.random())
+        # print("coordinate_hotspot: ", coordinate_hotspot)
+        # newId = int(coordinate_hotspot[2])
+        # print("newId: ", newId)
+        newId = int(e[2])
         # newId = 137
+        # self.orbitalViewer.close()
         self.createNewViewer(featuresId=newId, layer=self.layer)
         # self.orbitalViewer.reloadView(newId=newId)
         # qgsutils.zoomToFeature(self.canvas, self.layer, newId)
