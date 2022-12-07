@@ -10,6 +10,8 @@ class Slots(QtCore.QObject):
     _index = ""
     signal = QtCore.pyqtSignal()
 
+    def __del__(self):
+        print('usuwam slot')
     def setXYId(self, coordinates):
         """definiuje wartości parametrów do przekazania do JS"""
         self._coordinates = coordinates

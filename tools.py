@@ -7,11 +7,11 @@ from PIL import Image, ImageQt
 class SelectTool(QgsMapToolIdentify):
     """Obsługa wybrania zdjęcia z mapy projektu (wybór punktu)"""
 
-    def __init__(self, iface, parent=None, layer=None):
+    def __init__(self, iface, parent=None, queryLayer=None):
         QgsMapToolIdentify.__init__(self, iface.mapCanvas())
         self.canvas = iface.mapCanvas()
         self.iface = iface
-        self.layer = layer
+        self.queryLayer = queryLayer
         self.parent = parent
 
         # stworzenie kursora/celownika do wybierania obiektu na mapie
@@ -29,13 +29,14 @@ class SelectTool(QgsMapToolIdentify):
 
     def canvasReleaseEvent(self, event):
         found_features = self.identify(
-            event.x(), event.y(), [self.layer], self.TopDownAll
+            event.x(), event.y(), [self.queryLayer], self.TopDownAll
         )
-
+        print(event.x(), event.y())
         if len(found_features) > 0:
-            layer = found_features[0].mLayer
+
             feature = found_features[0].mFeature
             # Zoom To Feature
-            qgsutils.zoomToFeature(self.canvas, layer, feature.id())
-            self.parent.ShowViewer(featuresId=feature.id(), layer=layer)
+            qgsutils.zoomToFeature(self.canvas, self.queryLayer, feature.id())
+            self.parent.createNewViewer(featuresId=feature.id(), layer=self.queryLayer)
+
             print("feature.id(): ", feature.id())

@@ -50,6 +50,7 @@ from PhotoViewer360.gui.ui_orbitalDialog import Ui_orbitalDialog
 from PhotoViewer360.utils.qgsutils import qgsutils
 from qgis.PyQt.QtWebKitWidgets import QWebView, QWebPage
 from qgis.PyQt.QtWebKit import QWebSettings
+from qgis.PyQt import QtCore
 
 from .slots import Slots
 from math import sin, cos, sqrt, atan2, radians
@@ -78,7 +79,7 @@ class _ViewerPage(QWebPage):
 
 class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
     """Geo360 Dialog Class"""
-
+    slots = Slots()
     def __init__(self, iface, parent=None, featuresId=None, layer=None, name_layer=""):
 
         QDockWidget.__init__(self)
@@ -134,7 +135,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         # otrzymanie ściezki do zdjęcia
         self.current_image = self.GetImage()
-        print("self.current_image: ", self.current_image)
+        # print("self.current_image: ", self.current_image)
 
         # sprawdzenie czy istnieje ścieżka do zdjęcia
         if os.path.exists(self.current_image) is False:
@@ -157,11 +158,13 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         self.isWindowFullScreen = False
         self.normalWindowState = None
 
-        # # odebranie sygnału kliknięcia hotspot'u
-        # self.slots.signal.connect(self.ClickHotspot)
+
+        print('---orbitalViewer init----')
         
     def __del__(self):
         """dekonstruktor, uruchamia się przy zamknięciu okna"""
+
+        print('---orbitalViewer del----')
         self.resetQgsRubberBand()
 
     def onNewData(self, data):
@@ -173,7 +176,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
     def CreateViewer(self):
         """Funkcja odpowiadająca za załadowanie okna Street View (okna ze zdjęciem)"""
-
+        print('--createviewer')
         qgsutils.showUserAndLogMessage(u"Information: ", u"Create viewer", onlyLog=True)
 
         self.cef_widget = QWebView()
@@ -186,13 +189,13 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         pano_view_settings.setAttribute(QWebSettings.Accelerated2dCanvasEnabled, True)
         pano_view_settings.setAttribute(QWebSettings.JavascriptEnabled, True)
 
+        """ połaczenie z javascriptem"""
+
+
         self.page = _ViewerPage()
+        self.page.mainFrame().addToJavaScriptWindowObject("pythonSlot", self.slots)
         self.page.newData.connect(self.onNewData)
         self.cef_widget.setPage(self.page)
-
-        """ połaczenie z javascriptem"""
-        self.slots = Slots()
-        self.cef_widget.page().mainFrame().addToJavaScriptWindowObject("pythonSlot", self.slots)
 
         self.cef_widget.load(QUrl(self.DEFAULT_URL))
         self.ViewerLayout.addWidget(self.cef_widget, 1, 0)
@@ -227,48 +230,48 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         rgb_im.save(dst_dir)
 
         # utworzenie pliku html z danymi potrzebnymi do wyświetlenia informacji o zdjęciu
-        file_metadata = open(self.plugin_path + '/viewer/file_metadata.html', 'w')
+        with open(self.plugin_path + '/viewer/file_metadata.html', 'w') as file_metadata:
 
-        # zebranie danych potrzebnych do wyświetlenia informacji o zdjęciu
-        dateTime = "Brak daty" # domyślna wartość
-        for feature in self.layer.getFeatures():
+            # zebranie danych potrzebnych do wyświetlenia informacji o zdjęciu
+            dateTime = "Brak daty" # domyślna wartość
+            for feature in self.layer.getFeatures():
 
-            # # poprawa podziału nazwy poprzez "."
-            # print(name_img)
-            # print(name_img.split(".")[0:-2])
-            # print(name_img.split(".")[0:-1])
-            # print(name_img.split(".")[:-1])
-            # print(name_img.split(".")[-1])
-            # print(name_img.replace(".jpg",""))
-            # if feature.attributes()[2] == name_img.split(".")[0]:
+                # # poprawa podziału nazwy poprzez "."
+                # print(name_img)
+                # print(name_img.split(".")[0:-2])
+                # print(name_img.split(".")[0:-1])
+                # print(name_img.split(".")[:-1])
+                # print(name_img.split(".")[-1])
+                # print(name_img.replace(".jpg",""))
+                # if feature.attributes()[2] == name_img.split(".")[0]:
 
-            if feature.attributes()[2] == name_img.replace(".jpg",""):
-                dateTime = feature.attributes()[7]
-                dateTime = str(dateTime.toString(Qt.ISODate)).replace("T", " ")
-                nr_drogi = str(feature.attributes()[8])
-                nazwa_ulicy = str(feature.attributes()[9])
-                numer_odcinka = str(feature.attributes()[10])
-                kilometraz = str(feature.attributes()[11])
+                if feature.attributes()[2] == name_img.replace(".jpg",""):
+                    dateTime = feature.attributes()[7]
+                    dateTime = str(dateTime.toString(Qt.ISODate)).replace("T", " ")
+                    nr_drogi = str(feature.attributes()[8])
+                    nazwa_ulicy = str(feature.attributes()[9])
+                    numer_odcinka = str(feature.attributes()[10])
+                    kilometraz = str(feature.attributes()[11])
 
-        # uzupełnienie pliku "file_metadata.html" odpowiednią strukturą HTML (zawiera dane o zdjęciu oraz styl wyświetlenia tych danych)
-        if nazwa_ulicy == "NULL":
-            file_metadata.write(
-                '<!DOCTYPE html>' + '\n' + '<html lang="pl">' + '\n' + '<head>' + '\n' + '   <meta charset="UTF-8">' + '\n' + '  <title>Photos metadata</title>' + '\n' + '</head>' + '\n' + '<body>' + '\n' + ' <div id="photo_data" style="position: absolute; top: 0; left: 0px; padding-top: 0px;width: 250px; max-height: 100%; overflow: hidden; margin-left: 0; background-color: rgba(58,68,84,0.8); color:white; font-family: Calibri; line-height: 0.7;">' + '\n')
-            file_metadata.write('<p style="margin-left: 5px;">' + "<b>" + "Numer drogi: " + "</b>" + "</p>")
-            file_metadata.write('<p style="margin-left: 5px;">' + nr_drogi + "</p>")
-        else:
-            file_metadata.write(
-                '<!DOCTYPE html>' + '\n' + '<html lang="pl">' + '\n' + '<head>' + '\n' + '   <meta charset="UTF-8">' + '\n' + '  <title>Photos metadata</title>' + '\n' + '</head>' + '\n' + '<body>' + '\n' + ' <div id="photo_data" style="position: absolute; top: 0; left: 0px; padding-top: 0px;width: 220px; max-height: 100%; overflow: hidden; margin-left: 0; background-color: rgba(58,68,84,0.8); color:white; font-family: Calibri; line-height: 0.7;">' + '\n')
-            file_metadata.write('<p style="margin-left: 5px;">' + "<b>" + "Numer drogi: " + "</b>" + nr_drogi + "</p>")
-            file_metadata.write(
-                '<p style="margin-left: 5px;">' + "<b>" + "Nazwa ulicy: " + "</b>" + nazwa_ulicy + "</p>")
-            file_metadata.write(
-                '<p style="margin-left: 5px;">' + "<b>" + "Numer odcinka: " + "</b>" + numer_odcinka + "</p>")
-            file_metadata.write('<p style="margin-left: 5px;">' + "<b>" + "Kilometraż: " + "</b>" + kilometraz + "</p>")
+            # uzupełnienie pliku "file_metadata.html" odpowiednią strukturą HTML (zawiera dane o zdjęciu oraz styl wyświetlenia tych danych)
+            if nazwa_ulicy == "NULL":
+                file_metadata.write(
+                    '<!DOCTYPE html>' + '\n' + '<html lang="pl">' + '\n' + '<head>' + '\n' + '   <meta charset="UTF-8">' + '\n' + '  <title>Photos metadata</title>' + '\n' + '</head>' + '\n' + '<body>' + '\n' + ' <div id="photo_data" style="position: absolute; top: 0; left: 0px; padding-top: 0px;width: 250px; max-height: 100%; overflow: hidden; margin-left: 0; background-color: rgba(58,68,84,0.8); color:white; font-family: Calibri; line-height: 0.7;">' + '\n')
+                file_metadata.write('<p style="margin-left: 5px;">' + "<b>" + "Numer drogi: " + "</b>" + "</p>")
+                file_metadata.write('<p style="margin-left: 5px;">' + nr_drogi + "</p>")
+            else:
+                file_metadata.write(
+                    '<!DOCTYPE html>' + '\n' + '<html lang="pl">' + '\n' + '<head>' + '\n' + '   <meta charset="UTF-8">' + '\n' + '  <title>Photos metadata</title>' + '\n' + '</head>' + '\n' + '<body>' + '\n' + ' <div id="photo_data" style="position: absolute; top: 0; left: 0px; padding-top: 0px;width: 220px; max-height: 100%; overflow: hidden; margin-left: 0; background-color: rgba(58,68,84,0.8); color:white; font-family: Calibri; line-height: 0.7;">' + '\n')
+                file_metadata.write('<p style="margin-left: 5px;">' + "<b>" + "Numer drogi: " + "</b>" + nr_drogi + "</p>")
+                file_metadata.write(
+                    '<p style="margin-left: 5px;">' + "<b>" + "Nazwa ulicy: " + "</b>" + nazwa_ulicy + "</p>")
+                file_metadata.write(
+                    '<p style="margin-left: 5px;">' + "<b>" + "Numer odcinka: " + "</b>" + numer_odcinka + "</p>")
+                file_metadata.write('<p style="margin-left: 5px;">' + "<b>" + "Kilometraż: " + "</b>" + kilometraz + "</p>")
 
-        file_metadata.write('<p style="margin-left: 5px;">' + "<b>" + "Data: " + "</b>" + dateTime + "</p>")
-        file_metadata.write("</div>" + "\n" + "    </div>" + "\n" + "</body>" + "\n" + "</html>")
-        file_metadata.close()
+            file_metadata.write('<p style="margin-left: 5px;">' + "<b>" + "Data: " + "</b>" + dateTime + "</p>")
+            file_metadata.write("</div>" + "\n" + "    </div>" + "\n" + "</body>" + "\n" + "</html>")
+
 
     def GetPointsToHotspot(self):
         """Wybranie z warstwy hotspotów na podstawie utworzonego 10 metrowego buforu"""
@@ -350,7 +353,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
             return
 
         qgsutils.showUserAndLogMessage(u"Information: ", str(path), onlyLog=True)
-        print("path: ", path)
+        # print("path: ", path)
         return path
         
     def distance_function(self, lat1, lat2, lon1, lon2):
@@ -382,14 +385,14 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
     #     #     pass
     #     coordinate_hotspot = self.slots.getHotSpotDetailsToPython() # połączenie z Java Scriptem
     #     newId = int(coordinate_hotspot[2])
-    #     self.ReloadView(newId)
+    #     self.reloadView(newId)
     #     qgsutils.zoomToFeature(self.canvas, self.layer, newId)
     #     # del coordinate_hotspot
 
 
-    def ReloadView(self, newId):
+    def reloadView(self, newId):
         """Odświerzenie widoku zdjęcia (okna Street View)"""
-
+        print('===reload view====', newId)
         self.cef_widget = QWebView()
         self.cef_widget.setContextMenuPolicy(Qt.NoContextMenu)
 
@@ -405,7 +408,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         self.cef_widget.setPage(self.page)
 
         # """ połaczenie z javascriptem"""
-        self.slots = Slots()
+        # self.slots = Slots()
         self.cef_widget.page().mainFrame().addToJavaScriptWindowObject("pythonSlot", self.slots)
 
         self.cef_widget.load(QUrl(self.DEFAULT_URL))
@@ -414,7 +417,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         self.selected_features = qgsutils.getToFeature(self.layer, newId)
 
         self.current_image = self.GetImage()
-
+        print('--2--')
         # sprawdzenie czy istnieje ścieżka do zdjęcia
         if os.path.exists(self.current_image) is False:
             qgsutils.showUserAndLogMessage(

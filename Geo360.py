@@ -23,13 +23,13 @@
 from qgis.gui import QgsMapToolIdentify
 from qgis.PyQt.QtCore import Qt, QSettings, QThread, QVariant, QCoreApplication
 from qgis.PyQt.QtGui import QIcon, QCursor, QPixmap
-from qgis.PyQt.QtWidgets import QAction, QMessageBox, QProgressBar, QApplication, QToolBar
+from qgis.PyQt.QtWidgets import QAction, QMessageBox, QProgressBar, QApplication, QToolBar, QWidget
 from qgis.core import *
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 import processing
 
 from . import plugin_dir
-from PhotoViewer360.Geo360Dialog import Geo360Dialog
+from .Geo360Dialog import Geo360Dialog
 from PhotoViewer360.gui.first_window_geo360_dialog import FirstWindowGeo360Dialog
 import PhotoViewer360.config as config
 from PhotoViewer360.utils.log import log
@@ -41,14 +41,14 @@ import time, os
 from pathlib import Path
 
 import exifread
-from .slots import Slots
+
 from .tools import SelectTool
 
 try:
     from pydevd import *
 except ImportError:
     None
-
+from .slots import Slots
 
 class QuietHandler(SimpleHTTPRequestHandler):
     def log_message(self, format, *args):
@@ -82,14 +82,16 @@ class Geo360:
         # Declare instance attributes
         self.actions = []
         self.menu = self.tr(u'&PhotoViewer360')
+        self.layer = None
+        self.mapTool = None
+
 
         # toolbar
         self.toolbar = self.iface.mainWindow().findChild(QToolBar, 'PhotoViewer360')
         if not self.toolbar:
             self.toolbar = self.iface.addToolBar(u'PhotoViewer360')
             self.toolbar.setObjectName(u'PhotoViewer360')
-        
-        self.slots = Slots()
+
 
         # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -319,8 +321,11 @@ class Geo360:
 
         for layer in lys:
             if layer.name() == self.useLayer:
-                self.mapTool = SelectTool(self.iface, parent=self, layer=layer)
-                self.iface.mapCanvas().setMapTool(self.mapTool)
+                self.layer = layer
+                break
+
+        self.mapTool = SelectTool(self.iface, parent=self, queryLayer=self.layer)
+        self.iface.mapCanvas().setMapTool(self.mapTool)
 
                 # # zoom do wybranej warstwy
                 # xform = QgsCoordinateTransform(QgsCoordinateReferenceSystem(layer.crs()),
@@ -336,7 +341,8 @@ class Geo360:
         layer = self.dlg.mapLayerComboBox.currentText()
         layer = QgsProject.instance().mapLayersByName(layer.split(' ')[0])[0]
         self.iface.messageBar().pushMessage("Informacja", "Korzystasz z warstwy: " + self.useLayer, level=Qgis.Info, duration=-1)
-        self.mapTool = SelectTool(self.iface, parent=self, layer=layer)
+        self.layer = layer
+        self.mapTool = SelectTool(self.iface, parent=self, queryLayer=self.layer)
         self.iface.mapCanvas().setMapTool(self.mapTool)
         self.click_feature()
 
@@ -347,19 +353,19 @@ class Geo360:
         self.is_press_button = True
         self.action_activate.setEnabled(True)
         good_layer = False
-        layer = self.dlg.mapLayerComboBox.currentText()
-        self.useLayer = layer
+        layerName = self.dlg.mapLayerComboBox.currentText()
+        self.useLayer = layerName
 
         try:
-            layer = QgsProject.instance().mapLayersByName(layer.split(' ')[0])[0]
+            self.layer = QgsProject.instance().mapLayersByName(layerName.split(' ')[0])[0]
 
             # zdiagnozowanie czy wybrana wartwa została utworzona przez wtyczkę PhotoViewer360 (poprzez znalezienie kolumny "sciezka_zdjecie")
-            for field in layer.fields():
+            for field in self.layer.fields():
                 if field.name() == 'sciezka_zdjecie':
                     good_layer = True
 
             if good_layer == True:
-                self.mapTool = SelectTool(self.iface, parent=self, layer=layer)
+                self.mapTool = SelectTool(self.iface, parent=self, queryLayer=self.layer)
                 self.iface.mapCanvas().setMapTool(self.mapTool)
 
                 # # zoom do wybranej warstwy
@@ -747,41 +753,56 @@ class Geo360:
             rlayer.dataProvider().renameAttributes({findex: newname})
             rlayer.updateFields()
 
-    def ShowViewer(self, featuresId=None, layer=None):
+    def createNewViewer(self, featuresId=None, layer=None):
         """Funkcja uruchamia plik Geo360Dialog.py, który jest odpowiedzialny za obsługę okna StreetView (okna ze zdjęciami oraz nawigacją)"""
         self.featuresId = featuresId
-        self.layer = layer
-        
-        if self.orbitalViewer and not self.is_press_button:
-            self.orbitalViewer.ReloadView(self.featuresId)
-        else:
-            if self.orbitalViewer and self.is_press_button:
-                self.is_press_button = False
-                self.canvas.refresh()
-            self.orbitalViewer = Geo360Dialog(
-                self.iface, parent=self, featuresId=featuresId, layer=self.layer, name_layer=self.useLayer
-            )
-            self.iface.addDockWidget(Qt.RightDockWidgetArea, self.orbitalViewer)
-            
-            # odebranie sygnału kliknięcia hotspot'u
-            self.orbitalViewer.slots.signal.connect(self.ClickHotspot)
-    
-    
+        print('===create view====', featuresId)
+
+        self.canvas.refresh()
+
+
+        self.orbitalViewer = Geo360Dialog(
+            self.iface, parent=self, featuresId=featuresId, layer=layer, name_layer=self.useLayer
+        )
+
+
+        self.iface.addDockWidget(Qt.RightDockWidgetArea, self.orbitalViewer)
+
+        # odebranie sygnału kliknięcia hotspot'u
+        self.orbitalViewer.slots.signal.connect(self.ClickHotspot)
+
+
     def ClickHotspot(self):
         """Odbiór sygnału po kliknięciu w Hotspot"""
 
-        coordinate_hotspot = self.orbitalViewer.slots.getHotSpotDetailsToPython() # połączenie z Java Scriptem
+        coordinate_hotspot = self.orbitalViewer.slots.getHotSpotDetailsToPython() # połączenie z JavaScriptem
+        #
         print("coordinate_hotspot: ", coordinate_hotspot)
         newId = int(coordinate_hotspot[2])
         print("newId: ", newId)
-        self.orbitalViewer.ReloadView(newId)
-        self.orbitalViewer.slots.signal.connect(self.ClickHotspot)
-        qgsutils.zoomToFeature(self.canvas, self.layer, newId)
-
-        # layer = self.dlg.mapLayerComboBox.currentText()
-        # layer = QgsProject.instance().mapLayersByName(layer.split(' ')[0])[0]
-        # self.ShowViewer(featuresId=newId, layer=layer)
+        import random
+        print(random.random())
+        # newId = 137
+        self.createNewViewer(featuresId=newId, layer=self.layer)
+        # self.orbitalViewer.reloadView(newId=newId)
         # qgsutils.zoomToFeature(self.canvas, self.layer, newId)
+
+        # found_features = self.mapTool.identify(
+        #     geometry=QgsGeometry.fromPointXY(QgsPointXY(float(coordinate_hotspot[0]), float(coordinate_hotspot[1]))),
+        #     mode=self.mapTool.TopDownAll,
+        #     layerList=[self.layer],
+        #     layerType=QgsMapToolIdentify.VectorLayer)
+        # if len(found_features) > 0:
+        #     feature = found_features[0].mFeature
+        #     # Zoom To Feature
+        #     qgsutils.zoomToFeature(self.canvas, self.layer, feature.id())
+        #     self.createNewViewer(featuresId=feature.id(), layer=self.layer)
+        #
+        #     print("feature.id(): ", feature.id())
+
+
+
+
 
 
     def layerRemoved(self):
