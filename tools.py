@@ -9,6 +9,7 @@ class SelectTool(QgsMapToolIdentify):
 
     def __init__(self, iface, parent=None, queryLayer=None):
         QgsMapToolIdentify.__init__(self, iface.mapCanvas())
+        # print("QgsMapToolIdentify: ", QgsMapToolIdentify)
         self.canvas = iface.mapCanvas()
         self.iface = iface
         self.queryLayer = queryLayer
@@ -31,12 +32,10 @@ class SelectTool(QgsMapToolIdentify):
         found_features = self.identify(
             event.x(), event.y(), [self.queryLayer], self.TopDownAll
         )
-        print(event.x(), event.y())
+        # print(event.x(), event.y())
         if len(found_features) > 0:
 
             feature = found_features[0].mFeature
             # Zoom To Feature
             qgsutils.zoomToFeature(self.canvas, self.queryLayer, feature.id())
             self.parent.createNewViewer(featuresId=feature.id(), layer=self.queryLayer)
-
-            print("feature.id(): ", feature.id())

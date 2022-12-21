@@ -11,7 +11,7 @@ Wtyczka umożliwiająca import i wizualizację zdjęć panoramicznych w programi
 * możliwość wygenerowania raportu graficznego z aktualnym widokiem zdjęcia w formacie JPG/PNG
 
 ## Wymagania dot. importowanych zdjęć
-* format JPG
+* format zapisu rozszerzenia ".jpg"
 * dane EXIF zawierające: szerokość i długość geograficzną, azymut kierunku głównego, datę wykonania
 * nazwa zdjęć wg schematu: nrDrogi_nazwaUlicy_nrOdcinka_kilometraż
 * importowane zdjęcia muszą znajdować się w jednym folderze, nie ma możliwości importu pojedynczego pliku
@@ -31,6 +31,7 @@ Wtyczka umożliwiająca import i wizualizację zdjęć panoramicznych w programi
 
 ## Uwaga
 Warunkiem koniecznym do prawidłowego działania wtyczki jest posiadanie wersji QGIS 3.16 lub wyższej.
+W celu poprawnego działania wtyczki PhotoViewer360, należy odinstalować wtyczkę EquirectangularViewer (jeśli była wcześniej zainstalowana).
 
 # PhotoViewer360 - english version
 QGIS Plugin for importing and visualising local panoramic images. Based on EquirectangularViewer.
@@ -45,7 +46,7 @@ QGIS Plugin for importing and visualising local panoramic images. Based on Equir
 * ability of taking a creenshot with current view of photo
 
 ## Photo requirements
-* JPG format
+* extension saving format ".jpg"
 * EXIF data containing: latitude and longitude, main direction azimuth, date the photo was taken
 * name of photo according to the scheme: roadNumber_streetName_sectionNumber_mileage
 * imported photos has to be in one folder, there is no ability to import a single file
@@ -65,3 +66,4 @@ QGIS Plugin for importing and visualising local panoramic images. Based on Equir
 
 ## Attention
 The necessary condition for the correct operation of the plugin is to have the QGIS 3.16 version or higher.
+If the EquirectangularViewer plugin is installed, please uninstall it in order to the PhotoViewer360 plugin work properly.

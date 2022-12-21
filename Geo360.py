@@ -48,7 +48,6 @@ try:
     from pydevd import *
 except ImportError:
     None
-from .slots import Slots
 
 class QuietHandler(SimpleHTTPRequestHandler):
     def log_message(self, format, *args):
@@ -756,58 +755,14 @@ class Geo360:
     def createNewViewer(self, featuresId=None, layer=None):
         """Funkcja uruchamia plik Geo360Dialog.py, który jest odpowiedzialny za obsługę okna StreetView (okna ze zdjęciami oraz nawigacją)"""
         self.featuresId = featuresId
-        print('===create view====', featuresId)
-
         self.canvas.refresh()
 
-
         self.orbitalViewer = Geo360Dialog(
-            self.iface, featuresId=featuresId, layer=layer, name_layer=self.useLayer
+            self.iface, featuresId=featuresId, layer=layer, name_layer=self.useLayer, parent=self
         )
 
 
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.orbitalViewer)
-
-        # odebranie sygnału kliknięcia hotspot'u
-        # self.orbitalViewer.signal.connect(self.ClickHotspot)
-        # self.layer.nameChanged.connect(self.ClickHotspot)
-    def test(self, e):
-        print('test', e)
-        self.layer.setName(self.layer.name()+'x')
-        # self.layer.setName(self.layer.name() + 'x')
-
-    def ClickHotspot(self,e):
-        """Odbiór sygnału po kliknięciu w Hotspot"""
-
-        # coordinate_hotspot = self.orbitalViewer.getHotSpotDetailsToPython() # połączenie z JavaScriptem
-        #
-        # print("coordinate_hotspot: ", coordinate_hotspot)
-        # newId = int(coordinate_hotspot[2])
-        # print("newId: ", newId)
-        newId = int(e[2])
-        # newId = 137
-        # self.orbitalViewer.close()
-        self.createNewViewer(featuresId=newId, layer=self.layer)
-        # self.orbitalViewer.reloadView(newId=newId)
-        # qgsutils.zoomToFeature(self.canvas, self.layer, newId)
-
-        # found_features = self.mapTool.identify(
-        #     geometry=QgsGeometry.fromPointXY(QgsPointXY(float(coordinate_hotspot[0]), float(coordinate_hotspot[1]))),
-        #     mode=self.mapTool.TopDownAll,
-        #     layerList=[self.layer],
-        #     layerType=QgsMapToolIdentify.VectorLayer)
-        # if len(found_features) > 0:
-        #     feature = found_features[0].mFeature
-        #     # Zoom To Feature
-        #     qgsutils.zoomToFeature(self.canvas, self.layer, feature.id())
-        #     self.createNewViewer(featuresId=feature.id(), layer=self.layer)
-        #
-        #     print("feature.id(): ", feature.id())
-
-
-
-
-
 
     def layerRemoved(self):
         """Obsługa usunięcia warstwy z projektu QGIS"""
@@ -822,8 +777,6 @@ class Geo360:
                 self.orbitalViewer.close()
                 
                 
-            
-
     def checkSavePath(self, path):
         """Funkcja sprawdza czy ścieżka jest poprawna i zwraca Boolean"""
         if not path or path == '':
