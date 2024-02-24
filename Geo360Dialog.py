@@ -317,11 +317,11 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
             }
         )
 
-        # stworzenie bufora o promieniu 10m 
+        # stworzenie bufora o promieniu 15m
         bufor_2180 = processing.run(
             "native:buffer", {
                 'INPUT': list(selected_feature_2180.values())[0],
-                'DISTANCE': 10,
+                'DISTANCE': 15,
                 'SEGMENTS': 5,
                 'END_CAP_STYLE': 0,
                 'JOIN_STYLE': 0,
