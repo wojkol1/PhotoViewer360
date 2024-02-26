@@ -402,7 +402,7 @@ class Geo360:
         def progress_changed(progress):
             """Funkcja pokazująca progres podczas pracy narzędzia "Importuj geotagowane zdjęcia" """
             try:
-                self.progress.setValue(5 + (progress*34/100))
+                self.progress.setValue(5 + int(progress*34/100))
                 QApplication.processEvents()
             except RuntimeError:
                 pass
@@ -493,7 +493,7 @@ class Geo360:
 
                 time_progress += 1
                 try:
-                    self.progress.setValue(45+int(50*time_progress)/number_of_features)
+                    self.progress.setValue(45+int(int(50*time_progress)/number_of_features))
                     QApplication.processEvents()
 
                 except RuntimeError:
