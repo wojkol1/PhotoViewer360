@@ -73,6 +73,7 @@ class _ViewerPage(QWebPage):
 
     def emitSignal(self):
         self.newData.emit(list())
+
     def javaScriptConsoleMessage(self, msg, line, source):
         l = msg.split(",")
         if 'yaw' in l[0]:
@@ -96,7 +97,6 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
     def setXYtoPython(self, x, y, index):
         """definiuje wartości parametrów do przekazania do Python'a """
         self.ClickHotspot([x, y, index])
-
 
     @QtCore.pyqtSlot(result=list)
     def getPhotoDetails(self):
@@ -192,12 +192,10 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         # opcja FullScreen
         self.isWindowFullScreen = False
         self.normalWindowState = None
-
-
-
         
     def __del__(self):
         """dekonstruktor, uruchamia się przy zamknięciu okna"""
+
         self.resetQgsRubberBand()
 
     def onNewData(self, data):
@@ -209,6 +207,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
     def CreateViewer(self):
         """Funkcja odpowiadająca za załadowanie okna Street View (okna ze zdjęciem)"""
+
         qgsutils.showUserAndLogMessage(u"Information: ", u"Create viewer", onlyLog=True)
 
         self.cef_widget = QWebView()
@@ -258,7 +257,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         shutil.copy(src_dir, dst_dir)
 
         # utworzenie pliku html z danymi potrzebnymi do wyświetlenia informacji o zdjęciu
-        with open(self.plugin_path + '/viewer/file_metadata.html', 'w') as file_metadata:
+        with open(self.plugin_path + "/viewer/file_metadata.html", "w") as file_metadata:
 
             # zebranie danych potrzebnych do wyświetlenia informacji o zdjęciu
             dateTime = "Brak daty" # domyślna wartość
@@ -293,7 +292,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
 
     def GetPointsToHotspot(self):
-        """Wybranie z warstwy hotspotów na podstawie utworzonego 10 metrowego buforu"""
+        """Wybranie z warstwy hotspotów na podstawie utworzonego 15 metrowego buforu"""
 
         self.layer.select(self.selected_features.id())
 
@@ -304,24 +303,44 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
             y_punktu = geom.asPoint().y()
 
         # przeliczenie do układu EPSG: 2180
-        selected_feature_2180 = processing.run("native:reprojectlayer", {
-            'INPUT': QgsProcessingFeatureSourceDefinition(self.layer.name(), selectedFeaturesOnly=True, featureLimit=-1,
-                                                            geometryCheck=QgsFeatureRequest.GeometryAbortOnInvalid),
-            'TARGET_CRS': QgsCoordinateReferenceSystem('EPSG:2180'),
-            'OPERATION': '+proj=pipeline +step +proj=unitconvert +xy_in=deg +xy_out=rad +step +proj=tmerc +lat_0=0 +lon_0=19 +k=0.9993 +x_0=500000 +y_0=-5300000 +ellps=GRS80',
-            'OUTPUT': 'TEMPORARY_OUTPUT'})
+        selected_feature_2180 = processing.run(
+            "native:reprojectlayer", {
+                'INPUT': QgsProcessingFeatureSourceDefinition(
+                    self.layer.name(),
+                    selectedFeaturesOnly=True,
+                    featureLimit=-1,
+                    geometryCheck=QgsFeatureRequest.GeometryAbortOnInvalid
+                ),
+                'TARGET_CRS': QgsCoordinateReferenceSystem('EPSG:2180'),
+                'OPERATION': '+proj=pipeline +step +proj=unitconvert +xy_in=deg +xy_out=rad +step +proj=tmerc +lat_0=0 +lon_0=19 +k=0.9993 +x_0=500000 +y_0=-5300000 +ellps=GRS80',
+                'OUTPUT': 'TEMPORARY_OUTPUT'
+            }
+        )
 
-        # stworzenie bufora o promieniu 10m 
-        bufor_2180 = processing.run("native:buffer", {
-            'INPUT': list(selected_feature_2180.values())[0],
-            'DISTANCE': 10, 'SEGMENTS': 5, 'END_CAP_STYLE': 0, 'JOIN_STYLE': 0, 'MITER_LIMIT': 2, 'DISSOLVE': False,
-            'OUTPUT': 'TEMPORARY_OUTPUT'})
+        # stworzenie bufora o promieniu 15m
+        bufor_2180 = processing.run(
+            "native:buffer", {
+                'INPUT': list(selected_feature_2180.values())[0],
+                'DISTANCE': 15,
+                'SEGMENTS': 5,
+                'END_CAP_STYLE': 0,
+                'JOIN_STYLE': 0,
+                'MITER_LIMIT': 2,
+                'DISSOLVE': False,
+                'OUTPUT': 'TEMPORARY_OUTPUT'
+            }
+        )
 
         # wybranie z wartwy punktów, które znajdują się w buforze
-        processing.run("native:selectbylocation",
-                                        {'INPUT': self.layer.name(), 'PREDICATE': 0,
-                                         'INTERSECT': list(bufor_2180.values())[0], 'METHOD': 0})
-
+        processing.run(
+            "native:selectbylocation",
+            {
+                'INPUT': self.layer.name(),
+                'PREDICATE': 0,
+                'INTERSECT': list(bufor_2180.values())[0],
+                'METHOD': 0
+            }
+        )
 
         """Pobranie współrzędnych dla zdjęcia oraz dla punktów znajdujących się w buforze (hotspotów)"""
         # współrzędne w układzie EPSG:4326
@@ -377,11 +396,13 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         try:
             path = qgsutils.getAttributeFromFeature(
-                self.selected_features, config.column_name
+                self.selected_features,
+                config.column_name,
             )
             if not os.path.isabs(path):  # Relative Path to Project
                 path_project = QgsProject.instance().readPath("./")
                 path = os.path.normpath(os.path.join(path_project, path))
+
         except Exception:
             qgsutils.showUserAndLogMessage(u"Information: ", u"Column not found.")
             return
@@ -416,9 +437,8 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         # czyszczenie obiektów cef_widget i page (zapobieganie nadpisania obiektów w pamięci)
         self.cef_widget.deleteLater()
         self.page.deleteLater()
-        
-        self.cef_widget = QWebView()
 
+        self.cef_widget = QWebView()
         self.cef_widget.setContextMenuPolicy(Qt.NoContextMenu)
 
         self.cef_widget.settings().setAttribute(QWebSettings.JavascriptEnabled, True)
@@ -448,7 +468,8 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         # sprawdzenie czy istnieje ścieżka do zdjęcia
         if os.path.exists(self.current_image) is False:
             qgsutils.showUserAndLogMessage(
-                u"Information: ", u"There is no associated image."
+                u"Information: ",
+                u"There is no associated image.",
             )
             self.ChangeUrlViewer(self.DEFAULT_EMPTY)
             self.resetQgsRubberBand()
@@ -466,8 +487,6 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         # zoom do punktu po wybraniu hotspot'u
         qgsutils.zoomToFeature(self.canvas, self.layer, newId)
-
-
 
     def keyPressEvent(self, event):
         """Funkcja odpowiedzialna za wykrycie użycia przycisku ESC"""
@@ -496,9 +515,12 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
     def GetScreenShot(self):
         """Funkcja odpowiedzialna za przycisk do robienia raportu graficznego"""
 
-        image_path, extencion = QFileDialog.getSaveFileName(self.cef_widget, "Wskaż lokalizacje zrzutu ekranu",
-                                                            "",
-                                                            "PNG(*.png);;JPEG(*.jpg)")
+        image_path, extencion = QFileDialog.getSaveFileName(
+            self.cef_widget,
+            "Wskaż lokalizacje zrzutu ekranu",
+            "",
+            "PNG(*.png);;JPEG(*.jpg)",
+        )
 
         # gdy użytkownik nie wskaże pliku -> nic nie rób
         if not image_path:
@@ -520,6 +542,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
             self.bearing = self.selected_features.attribute(config.column_yaw)
 
         originalPoint = self.selected_features.geometry().asPoint()
+
         self.actualPointDx = qgsutils.convertProjection(
             originalPoint.x(),
             originalPoint.y(),
@@ -534,8 +557,10 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         # stworzenie radaru na mapie (pokazuje skierowanie zdjęcia)
         self.actualPointOrientation = QgsRubberBand(
-            self.iface.mapCanvas(), QgsWkbTypes.LineGeometry
+            self.iface.mapCanvas(),
+            QgsWkbTypes.LineGeometry,
         )
+
         self.actualPointOrientation.setColor(Qt.magenta)
         self.actualPointOrientation.setWidth(3)
 
@@ -545,52 +570,97 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         CS = self.canvas.mapUnitsPerPixel() * 18
         A2x = self.actualPointDx.x() - CS
         A2y = self.actualPointDx.y() + CS
-        self.actualPointOrientation.addPoint(QgsPointXY(float(A2x), float(A2y)))
+        self.actualPointOrientation.addPoint(
+            QgsPointXY(
+                float(A2x),
+                float(A2y)
+            )
+        )
 
         # dolny punkt radaru
         CS = self.canvas.mapUnitsPerPixel() * 22
         A1x = self.actualPointDx.x()
         A1y = self.actualPointDx.y()
-        self.actualPointOrientation.addPoint(QgsPointXY(float(A1x), float(A1y)))
+        self.actualPointOrientation.addPoint(
+            QgsPointXY(
+                float(A1x),
+                float(A1y)
+            )
+        )
 
         # prawy punkt
         CS = self.canvas.mapUnitsPerPixel() * 18
         A3x = self.actualPointDx.x() + CS
         A3y = self.actualPointDx.y() + CS
-        self.actualPointOrientation.addPoint(QgsPointXY(float(A3x), float(A3y)))
+        self.actualPointOrientation.addPoint(
+            QgsPointXY(
+                float(A3x),
+                float(A3y)
+            )
+        )
 
         # następne punkty łuku strzałki
         CS = self.canvas.mapUnitsPerPixel() * 18
         A4x = self.actualPointDx.x() + CS * 0.75
         A4y = self.actualPointDx.y() + CS * 1.25
-        self.actualPointOrientation.addPoint(QgsPointXY(float(A4x), float(A4y)))
+        self.actualPointOrientation.addPoint(
+            QgsPointXY(
+                float(A4x),
+                float(A4y)
+            )
+        )
 
         CS = self.canvas.mapUnitsPerPixel() * 18
         A44x = self.actualPointDx.x() + CS * 0.50
         A44y = self.actualPointDx.y() + CS * 1.45
-        self.actualPointOrientation.addPoint(QgsPointXY(float(A44x), float(A44y)))
+        self.actualPointOrientation.addPoint(
+            QgsPointXY(
+                float(A44x),
+                float(A44y)
+            )
+        )
 
         CS = self.canvas.mapUnitsPerPixel() * 18
         A444x = self.actualPointDx.x() + CS * 0.25
         A444y = self.actualPointDx.y() + CS * 1.55
-        self.actualPointOrientation.addPoint(QgsPointXY(float(A444x), float(A444y)))
+        self.actualPointOrientation.addPoint(
+            QgsPointXY(
+                float(A444x),
+                float(A444y)
+            )
+        )
 
         # górny punkt łuku radaru
         CS = self.canvas.mapUnitsPerPixel() * 18
         A5x = self.actualPointDx.x()
         A5y = self.actualPointDx.y() + CS * 1.6
-        self.actualPointOrientation.addPoint(QgsPointXY(float(A5x), float(A5y)))
+        self.actualPointOrientation.addPoint(
+            QgsPointXY(
+                float(A5x),
+                float(A5y)
+            )
+        )
 
         # następne punkty łuku radaru
         CS = self.canvas.mapUnitsPerPixel() * 18
         A6x = self.actualPointDx.x() - CS * 0.25
         A6y = self.actualPointDx.y() + CS * 1.55
-        self.actualPointOrientation.addPoint(QgsPointXY(float(A6x), float(A6y)))
+        self.actualPointOrientation.addPoint(
+            QgsPointXY(
+                float(A6x),
+                float(A6y)
+            )
+        )
 
         CS = self.canvas.mapUnitsPerPixel() * 18
         A66x = self.actualPointDx.x() - CS * 0.50
         A66y = self.actualPointDx.y() + CS * 1.45
-        self.actualPointOrientation.addPoint(QgsPointXY(float(A66x), float(A66y)))
+        self.actualPointOrientation.addPoint(
+            QgsPointXY(
+                float(A66x),
+                float(A66y)
+            )
+        )
 
         CS = self.canvas.mapUnitsPerPixel() * 18
         A666x = self.actualPointDx.x() - CS * 0.75
@@ -607,9 +677,9 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         if self.current_direction is not None: # warunek spełniony po wybraniu kolejnego hotspotu
             angle = self.bearing_current
         elif yaw is not None: # warunek dla przypadku, gdy obróciliśmy zdjęcie w oknie (kąt yaw - kąt o jaki obróciliśmy zdjęcie względem kierunku jazdy samochodu)
-            self.yaw = yaw  * math.pi / -180 # kąt o jaki obrócono zdjęcie, potrzeby do ustawienia zdjęcia w odpowiednim kierunku w następnym hotspocie
-            self.bearing_current = float(self.bearing  + yaw) * math.pi / -180 # kąt potrzebny do zachowania kierunku radaru w następnym hotspocie
-            angle = float(self.bearing  + yaw) * math.pi / -180
+            self.yaw = yaw * math.pi / -180 # kąt o jaki obrócono zdjęcie, potrzeby do ustawienia zdjęcia w odpowiednim kierunku w następnym hotspocie
+            self.bearing_current = float(self.bearing + yaw) * math.pi / -180 # kąt potrzebny do zachowania kierunku radaru w następnym hotspocie
+            angle = float(self.bearing + yaw) * math.pi / -180
         else:
             angle = float(self.bearing) * math.pi / -180
             self.bearing_current = float(self.bearing) * math.pi / -180
@@ -620,16 +690,25 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
         self.rotateTool = transformGeometry()
         epsg = self.canvas.mapSettings().destinationCrs().authid()
+
         self.dumLayer = QgsVectorLayer(
-            "Point?crs=" + epsg, "temporary_points", "memory"
-        )
-        self.actualPointOrientation.setToGeometry(
-            self.rotateTool.rotate(tmpGeom, self.actualPointDx, angle), self.dumLayer
+            "Point?crs=" + epsg,
+            "temporary_points",
+            "memory"
         )
 
+        self.actualPointOrientation.setToGeometry(
+            self.rotateTool.rotate(
+                tmpGeom,
+                self.actualPointDx,
+                angle
+            ),
+            self.dumLayer
+        )
 
     def setPosition(self):
         """ustawienie pozycji RubberBand (rysunku łuku)"""
+
         # Transform Point
         originalPoint = self.selected_features.geometry().asPoint()
         self.actualPointDx = qgsutils.convertProjection(
@@ -640,7 +719,8 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         )
 
         self.positionDx = QgsRubberBand(
-            self.iface.mapCanvas(), QgsWkbTypes.PointGeometry
+            self.iface.mapCanvas(),
+            QgsWkbTypes.PointGeometry,
         )
 
         self.positionDx.setWidth(6)
@@ -649,7 +729,8 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         self.positionDx.setColor(QColor(0, 102, 153))
 
         self.positionSx = QgsRubberBand(
-            self.iface.mapCanvas(), QgsWkbTypes.PointGeometry
+            self.iface.mapCanvas(),
+            QgsWkbTypes.PointGeometry,
         )
 
         self.positionSx.setWidth(5)
@@ -658,7 +739,8 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
         self.positionSx.setColor(QColor(0, 102, 153))
 
         self.positionInt = QgsRubberBand(
-            self.iface.mapCanvas(), QgsWkbTypes.PointGeometry
+            self.iface.mapCanvas(),
+            QgsWkbTypes.PointGeometry,
         )
 
         self.positionInt.setWidth(5)
@@ -672,6 +754,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
     def closeEvent(self, _):
         """Zamknięcie okna ze zdjęciem (street view)"""
+
         self.resetQgsRubberBand()
         self.canvas.refresh()
         self.iface.actionPan().trigger()
@@ -680,6 +763,7 @@ class Geo360Dialog(QDockWidget, Ui_orbitalDialog):
 
     def resetQgsRubberBand(self):
         """Usunięcie łuku wskazującego kierunek zdjęcia"""
+
         try:
             self.positionSx.reset()
             self.positionInt.reset()
